@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BOISER Power Tools | Unified ILAW Generator</title>
+
+<style>
+:root{
+  --blue:#0c3d78;
+  --teal:#087e8b;
+  --green:#4d9b22;
+  --orange:#d77b3f;
+  --bg:#eef3f7;
+  --ink:#17212b;
+  --line:#1d2832;
+  --muted:#5d6975;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:Arial,Helvetica,sans-serif;
+}
+header{
+  background:linear-gradient(135deg,#0b315f,#087e8b);
+  color:#fff;padding:18px 22px;
+}
+header h1{margin:0;font-size:22px}
+header p{margin:5px 0 0;font-size:13px;opacity:.9}
+.container{max-width:1280px;margin:auto;padding:16px}
+.card{
+  background:#fff;border:1px solid #d6e0e8;border-radius:12px;
+  padding:16px;margin-bottom:15px;box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+h2{font-size:17px;margin:0 0 12px;color:var(--blue)}
+h3{font-size:14px;margin:12px 0 7px;color:var(--teal)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(max-width:850px){.grid,.grid2{grid-template-columns:1fr}}
+label{display:block;font-size:12px;font-weight:700;margin:4px 0}
+input,select,textarea,button{
+  width:100%;border:1px solid #b9c7d3;border-radius:7px;padding:9px;
+  font:inherit;
+}
+textarea{min-height:94px;resize:vertical}
+button{
+  cursor:pointer;border:0;color:#fff;background:var(--blue);
+  font-weight:700;margin-top:8px;
+}
+button:hover{filter:brightness(1.08)}
+button.secondary{background:#4c5b66}
+button.green{background:#28834a}
+button.orange{background:#c97032}
+button:disabled{opacity:.55;cursor:not-allowed}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{width:auto;padding:10px 15px}
+.status{
+  padding:10px;border-left:4px solid var(--green);background:#eef9f1;
+  font-size:13px;margin-top:10px;
+}
+.warning{
+  padding:10px;border-left:4px solid #e59a20;background:#fff8e8;
+  font-size:13px;margin-top:10px;
+}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none!important}
+
+/* Generated Region X ILAW */
+#printArea{
+  background:#fff;color:#000;font-family:"Times New Roman",serif;
+  margin-top:16px;padding:16px;border:1px solid #d6e0e8;border-radius:12px;
+}
+.ilaw-doc{max-width:1100px;margin:auto;border:1px solid #000}
+.ilaw-head{text-align:center;padding:12px;border-bottom:1px solid #000;line-height:1.4}
+.ilaw-head strong{display:block}
+.ilaw-head .title{font-size:15px;margin-top:5px;font-weight:bold}
+.ilaw-table{width:100%;border-collapse:collapse}
+.ilaw-table td,.ilaw-table th{
+  border:1px solid #000;padding:7px 10px;vertical-align:top;font-size:12px;
+}
+.ilaw-table th{width:195px;text-align:left;background:#f2f2f2;font-weight:bold}
+.section-header{
+  background:#0b315f!important;color:#fff;text-align:center!important;
+  font-weight:bold;font-size:12px;letter-spacing:0.5px;
+}
+.days{width:100%;border-collapse:collapse}
+.days td{width:25%;font-size:11px;padding:8px;border:1px solid #000;vertical-align:top}
+.day-title{text-align:center;font-weight:bold;background:#eee;padding:5px;border-bottom:1px solid #000}
+.step-tag{font-weight:bold;color:#000;margin-top:4px;display:block}
+.footer{
+  display:grid;grid-template-columns:1fr 1fr;gap:70px;
+  padding:35px 45px 20px;text-align:center;font-size:12px;
+}
+.signature{border-top:1px solid #000;padding-top:5px;font-weight:bold}
+.las{page-break-before:always;margin-top:30px;border-top:2px dashed #000;padding-top:20px;font-family:"Times New Roman",serif}
+.las table{width:100%;border-collapse:collapse;margin:10px 0}
+.las td,.las th{border:1px solid #000;padding:6px;font-size:12px}
+
+@media print{
+  body{background:#fff}
+  header,.container>.card:not(#printArea),.actions{display:none!important}
+  #printArea{display:block!important;border:none;padding:0;margin:0}
+  @page{size:A4 landscape;margin:8mm}
+}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>BOISER POWER TOOLS — Unified DepEd ILAW Generator</h1>
+  <p>BOW-aligned lesson-plan and Learning Activity Sheet generator</p>
+</header>
+
+<div class="container">
+
+  <!-- Step 1: BOW Selection -->
+  <div class="card">
+    <h2>1. BOW Curriculum Selector</h2>
+
+    <div class="grid">
+      <div>
+        <label>Curriculum</label>
+        <select id="curriculum">
+          <option>Strengthened SHS Curriculum (DO 015, s. 2026)</option>
+          <option disabled>MATATAG K–10 Curriculum (Import BOW Required)</option>
+          <option disabled>K–12 Curriculum (Import BOW Required)</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Grade Level</label>
+        <select id="grade">
+          <option>Grade 11</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Subject</label>
+        <select id="subject" onchange="onSubjectChange()"></select>
+      </div>
+
+      <div>
+        <label>Term</label>
+        <select id="term" onchange="onTermChange()">
+          <option value="1">Term 1 (Weeks 1–10)</option>
+          <option value="2">Term 2 (Weeks 1–10)</option>
+          <option value="3">Term 3 (Weeks 1–10)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:10px">
+      <div>
+        <label>Week / Competency Cluster</label>
+        <select id="week" onchange="onWeekChange()"></select>
+      </div>
+
+      <div>
+        <label>Topic / Learning Competency Focus</label>
+        <select id="topic" onchange="onTopicChange()"></select>
+      </div>
+    </div>
+
+    <div id="bowStatus" class="status"></div>
+  </div>
+
+  <!-- Step 2: School and Teacher Information -->
+  <div class="card">
+    <h2>2. School and Teacher Information</h2>
+    <div class="grid">
+      <div>
+        <label>School</label>
+        <input id="school" value="LNNCHS">
+      </div>
+      <div>
+        <label>Teacher</label>
+        <input id="teacher" value="STEAVEN KINTH D. BOISER">
+      </div>
+      <div>
+        <label>Grade Level and Section</label>
+        <input id="section" value="Grade 11 - Einstein / Rizal">
+      </div>
+      <div>
+        <label>Teaching Dates &amp; Duration</label>
+        <input id="dates" value="Week 1 (4 Sessions • 60 mins/session)">
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div>
+        <label>Division</label>
+        <input id="division" value="Division of Lanao del Norte">
+      </div>
+      <div>
+        <label>Region</label>
+        <input id="region" value="Region X – Northern Mindanao">
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Standards, Competencies & 4-Day Plan -->
+  <div class="card">
+    <h2>3. Content Standards, Competencies &amp; Four-Session Flow</h2>
+
+    <div class="grid2">
+      <div>
+        <label>Content Standard</label>
+        <textarea id="contentStandard"></textarea>
+      </div>
+      <div>
+        <label>Performance Standard</label>
+        <textarea id="performanceStandard"></textarea>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:10px">
+      <div>
+        <label>Learning Competency</label>
+        <textarea id="learningCompetency"></textarea>
+      </div>
+      <div>
+        <label>Enabling Competencies</label>
+        <textarea id="enablingCompetencies"></textarea>
+      </div>
+    </div>
+
+    <h3>Four-Session Daily Lesson Procedure</h3>
+    <div class="grid">
+      <div>
+        <label>Day 1: Elicit / Engage</label>
+        <textarea id="day1" style="min-height:115px"></textarea>
+      </div>
+      <div>
+        <label>Day 2: Explore / Explain</label>
+        <textarea id="day2" style="min-height:115px"></textarea>
+      </div>
+      <div>
+        <label>Day 3: Elaborate</label>
+        <textarea id="day3" style="min-height:115px"></textarea>
+      </div>
+      <div>
+        <label>Day 4: Evaluate / Extend</label>
+        <textarea id="day4" style="min-height:115px"></textarea>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:10px">
+      <div>
+        <label>Learning Resources &amp; Materials</label>
+        <textarea id="resources">DepEd Strengthened SHS BOW (SY 2026–2027), Learner Materials, Boiser Power Tools, Multimedia Presentations.</textarea>
+      </div>
+      <div>
+        <label>Curriculum Integration &amp; 21st Century Skills</label>
+        <textarea id="integration">STEM linkages, TechPro Career readiness, Critical Thinking, Ethical Digital Citizenship, Environmental Stewardship.</textarea>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top:14px">
+      <button class="green" onclick="renderILAW()">⚡ Update ILAW Document</button>
+      <button class="secondary" onclick="window.print()">🖨️ Print / Save as PDF (A4)</button>
+      <button class="orange" onclick="exportBOWJSON()">📥 Export Current BOW (JSON)</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">📤 Import Custom BOW (JSON)</button>
+      <input type="file" id="importFile" style="display:none" accept=".json" onchange="importBOWJSON(event)">
+    </div>
+  </div>
+
+  <!-- Step 4: Output Preview Area (Region X ILAW as is) -->
+  <div class="card" id="printArea">
+    <div class="ilaw-doc">
+      <!-- Header -->
+      <div class="ilaw-head">
+        <div>Republic of the Philippines</div>
+        <strong>Department of Education</strong>
+        <div id="dispRegion">Region X – Northern Mindanao</div>
+        <div id="dispDivision">Division of Lanao del Norte</div>
+        <strong id="dispSchool" style="font-size:14px;margin-top:3px">LNNCHS</strong>
+        <div class="title">INSTRUCTIONAL LEADERSHIP AND ACADEMIC WORKFLOW (ILAW)</div>
+        <div style="font-size:11px;font-style:italic">SY 2026–2027 Three-Term Implementation (DO 009 &amp; 015, s. 2026)</div>
+      </div>
+
+      <!-- Table Body -->
+      <table class="ilaw-table">
+        <tr>
+          <th>TEACHER</th>
+          <td id="dispTeacher">STEAVEN KINTH D. BOISER</td>
+          <th>LEARNING AREA</th>
+          <td id="dispSubject">Effective Communication</td>
+        </tr>
+        <tr>
+          <th>TEACHING DATES &amp; TIME</th>
+          <td id="dispDates">Week 1 (4 Sessions)</td>
+          <th>GRADE LEVEL &amp; SECTION</th>
+          <td id="dispSection">Grade 11 - Einstein</td>
+        </tr>
+        <tr>
+          <th>GRADING PERIOD</th>
+          <td id="dispTerm">Term 1 (Weeks 1–10)</td>
+          <th>CURRICULUM</th>
+          <td>Strengthened SHS Curriculum (DO 015, s. 2026)</td>
+        </tr>
+
+        <!-- I. Objectives -->
+        <tr>
+          <td colspan="4" class="section-header">I. OBJECTIVES</td>
+        </tr>
+        <tr>
+          <th>A. Content Standard</th>
+          <td colspan="3" id="dispContentStandard"></td>
+        </tr>
+        <tr>
+          <th>B. Performance Standard</th>
+          <td colspan="3" id="dispPerformanceStandard"></td>
+        </tr>
+        <tr>
+          <th>C. Learning Competencies</th>
+          <td colspan="3" id="dispLearningCompetency" style="font-weight:bold"></td>
+        </tr>
+        <tr>
+          <th>D. Enabling Competencies</th>
+          <td colspan="3" id="dispEnablingCompetencies"></td>
+        </tr>
+
+        <!-- II. Content -->
+        <tr>
+          <td colspan="4" class="section-header">II. CONTENT / TOPIC FOCUS</td>
+        </tr>
+        <tr>
+          <th>Subject Matter</th>
+          <td colspan="3" id="dispTopic" style="font-weight:bold;font-size:13px"></td>
+        </tr>
+
+        <!-- III. Resources -->
+        <tr>
+          <td colspan="4" class="section-header">III. LEARNING RESOURCES &amp; INTEGRATION</td>
+        </tr>
+        <tr>
+          <th>A. References &amp; Materials</th>
+          <td colspan="3" id="dispResources"></td>
+        </tr>
+        <tr>
+          <th>B. Cross-Curricular Integration</th>
+          <td colspan="3" id="dispIntegration"></td>
+        </tr>
+
+        <!-- IV. Procedures (4 Sessions Days Table) -->
+        <tr>
+          <td colspan="4" class="section-header">IV. PROCEDURES</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="padding:0">
+            <table class="days">
+              <tr>
+                <td class="day-title">Day 1<br><small>Elicit / Engage</small></td>
+                <td class="day-title">Day 2<br><small>Explore / Explain</small></td>
+                <td class="day-title">Day 3<br><small>Elaborate</small></td>
+                <td class="day-title">Day 4<br><small>Evaluate / Extend</small></td>
+              </tr>
+              <tr>
+                <td id="dispDay1"></td>
+                <td id="dispDay2"></td>
+                <td id="dispDay3"></td>
+                <td id="dispDay4"></td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- V. Remarks -->
+        <tr>
+          <td colspan="4" class="section-header">V. REMARKS &amp; VI. REFLECTION</td>
+        </tr>
+        <tr>
+          <td colspan="4" style="font-size:11px">
+            <strong>Assessment Tracking:</strong> Formative evaluation documented for all sessions. 80%+ mastery targeted prior to proceeding to subsequent week's competency cluster.
+          </td>
+        </tr>
+      </table>
+
+      <!-- Signatures Footer -->
+      <div class="footer">
+        <div>
+          <div style="font-size:11px;color:#444">Prepared by:</div>
+          <div class="signature" id="sigTeacher" style="margin-top:35px">STEAVEN KINTH D. BOISER</div>
+          <div style="font-size:11px">Teacher</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#444">Noted by:</div>
+          <div class="signature" style="margin-top:35px">School Principal / Head Teacher</div>
+          <div style="font-size:11px">School Head</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paired Learning Activity Sheet (LAS) -->
+    <div class="las">
+      <div style="text-align:center;font-weight:bold;font-size:15px;margin-bottom:8px">
+        LEARNING ACTIVITY SHEET (LAS)
+      </div>
+      <div style="text-align:center;font-size:12px;margin-bottom:12px">
+        Department of Education • Region X • Division of Lanao del Norte
+      </div>
+
+      <table>
+        <tr>
+          <td><strong>Name:</strong> _________________________________</td>
+          <td><strong>Grade &amp; Section:</strong> <span id="lasSection">Grade 11</span></td>
+          <td><strong>Date:</strong> ________________</td>
+        </tr>
+        <tr>
+          <td colspan="2"><strong>Learning Area:</strong> <span id="lasSubject">Effective Communication</span></td>
+          <td><strong>Term &amp; Week:</strong> <span id="lasWeek">Term 1, Week 1</span></td>
+        </tr>
+        <tr>
+          <td colspan="3"><strong>Learning Competency:</strong> <span id="lasCompetency"></span></td>
+        </tr>
+      </table>
+
+      <div style="margin:14px 0">
+        <strong style="font-size:12px;display:block;margin-bottom:4px">I. Background Information for Learners</strong>
+        <p id="lasBackground" style="font-size:12px;line-height:1.5;text-align:justify;margin:0"></p>
+      </div>
+
+      <div style="margin:14px 0">
+        <strong style="font-size:12px;display:block;margin-bottom:4px">II. Activity 1: Concept Exploration</strong>
+        <p id="lasAct1" style="font-size:12px;line-height:1.5;margin:0"></p>
+      </div>
+
+      <div style="margin:14px 0">
+        <strong style="font-size:12px;display:block;margin-bottom:4px">III. Activity 2: Deepening &amp; Application</strong>
+        <p id="lasAct2" style="font-size:12px;line-height:1.5;margin:0"></p>
+      </div>
+
+      <div style="margin:14px 0">
+        <strong style="font-size:12px;display:block;margin-bottom:4px">IV. Activity 3: Performance Task &amp; Scoring Rubric</strong>
+        <p id="lasAct3" style="font-size:12px;line-height:1.5;margin:0 0 8px"></p>
+        <table>
+          <tr style="background:#eee;font-weight:bold">
+            <th>Criteria</th>
+            <th>Advancing (4)</th>
+            <th>Benchmarking (3)</th>
+            <th>Connecting (2)</th>
+          </tr>
+          <tr>
+            <td>Accuracy &amp; Concept Mastery</td>
+            <td>Thorough understanding shown</td>
+            <td>Accurate with minor gaps</td>
+            <td>Basic knowledge displayed</td>
+          </tr>
+          <tr>
+            <td>Practical Application</td>
+            <td>Creative, authentic solution</td>
+            <td>Standard application</td>
+            <td>Needs guidance</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const GRADE_11_BOW = {
+  "Effective Communication": {
+    "1": [
+      {
+        week: "Weeks 1–2",
+        topic: "Nature, Process, and Models of Human Communication",
+        code: "SHS-EC-T1-W1",
+        contentStandard: "The learner understands the nature, elements, and dynamics of verbal and non-verbal human communication across diverse cultural and social settings.",
+        performanceStandard: "The learner designs and performs an effective, culturally sensitive oral communication exemplar illustrating fundamental communication models.",
+        learningCompetency: "Explains the functions, nature, and process of communication using established models (Shannon-Weaver, Schramm, Berlo SMCR).",
+        enablingCompetencies: "1. Distinguishes verbal from non-verbal cues. 2. Identifies communication breakdowns and applies remediation strategies.",
+        day1: "Elicit: Telephone game icebreaker to expose message distortion. Engage: Video case analysis of intercultural communication breakdowns.",
+        day2: "Explore: Small group diagramming of Shannon-Weaver vs. Schramm models. Explain: Interactive lecture on noise barriers and feedback loops.",
+        day3: "Elaborate: Role-play simulation resolving workplace miscommunication in a simulated BPO / front-office scenario.",
+        day4: "Evaluate: Formative rubric assessment of role-play simulation and 10-item conceptual quiz on communication models.",
+        lasBg: "Communication is a dynamic two-way process of exchanging information, thoughts, and emotions through shared systems of symbols and behavior.",
+        lasA1: "Create a comparative Venn diagram contrasting the linear Shannon-Weaver model with the transactional Schramm interactive model.",
+        lasA2: "Analyze three real-life classroom or online communication breakdowns. Propose a concrete communicative repair strategy for each.",
+        lasA3: "Record or present a 2-minute video commentary demonstrating appropriate non-verbal gestures in formal Philippine workplace settings."
+      },
+      {
+        week: "Weeks 3–4",
+        topic: "Intercultural Communication & Communicative Competence",
+        code: "SHS-EC-T1-W2",
+        contentStandard: "The learner demonstrates communicative competence by recognizing barriers in intercultural communication.",
+        performanceStandard: "The learner participates productively in diverse intercultural collaborative dialogues.",
+        learningCompetency: "Demonstrates sensitivity to socio-cultural dimensions of communication (gender, religion, culture, social status).",
+        enablingCompetencies: "1. Evaluates bias and ethnocentrism in dialogues. 2. Applies polite register in multicultural settings.",
+        day1: "Elicit: World etiquette cultural quiz. Engage: Discussion on high-context vs low-context Philippine regional cultures.",
+        day2: "Explore: Case study of multinational company email exchanges. Explain: Hofstede's cultural dimensions in everyday communication.",
+        day3: "Elaborate: Scriptwriting of an inclusive intercultural dialogue among Mindanao, Visayas, and Luzon youth leaders.",
+        day4: "Evaluate: Peer assessment of intercultural dialogue scripts using an inclusiveness rubric.",
+        lasBg: "Intercultural communication happens when participants from differing cultural backgrounds negotiate shared meaning respectfully.",
+        lasA1: "Identify 5 cultural communication differences between high-context and low-context societies.",
+        lasA2: "Rewrite 3 culturally insensitive customer service responses into empathetic, inclusive statements.",
+        lasA3: "Draft a Code of Intercultural Conduct for your Senior High School classroom."
+      },
+      {
+        week: "Weeks 5–6",
+        topic: "Types of Communicative Strategies in Discourse",
+        code: "SHS-EC-T1-W3",
+        contentStandard: "The learner understands how communicative strategies manage topic and interaction flow.",
+        performanceStandard: "The learner skillfully deploys communicative strategies in informal and formal panel discussions.",
+        learningCompetency: "Engages in collaborative communicative situations using appropriate communicative strategies (Nomination, Restriction, Turn-taking, Topic Control, Topic Shifting, Repair, Termination).",
+        enablingCompetencies: "1. Identifies seven types of communicative strategies. 2. Prevents topic hijacking.",
+        day1: "Elicit: Fishbowl discussion without speaking rules to observe chaos. Engage: Establish necessity of conversational protocol.",
+        day2: "Explore: Video analysis of Senate committee hearings highlighting Turn-taking and Repair. Explain: 7 communicative strategies defined.",
+        day3: "Elaborate: Mock legislative or barangay council debate with assigned communicative strategy cards.",
+        day4: "Evaluate: Checklist scoring of strategy card utilization during the live mock debate.",
+        lasBg: "Communicative strategies are planned methods used by speakers to overcome communication barriers and govern conversation flow.",
+        lasA1: "Classify 10 dialogue excerpts into Nomination, Restriction, Turn-taking, Topic Control, Topic Shifting, Repair, or Termination.",
+        lasA2: "Write a short script showing how a chairperson can use 'Repair' and 'Topic Shifting' to resolve an argument.",
+        lasA3: "Participate in a 3-minute impromptu round-table discussion using at least 4 assigned strategies."
+      }
+    ],
+    "2": [
+      {
+        week: "Weeks 1–2",
+        topic: "Critical Reading & Academic Text Structures",
+        code: "SHS-EC-T2-W1",
+        contentStandard: "The learner understands the principles and text structures of academic writing.",
+        performanceStandard: "The learner produces a comprehensive critique of an academic journal article.",
+        learningCompetency: "Differentiates language used in academic texts from various disciplines (EAPP).",
+        enablingCompetencies: "1. Identifies IMRaD format. 2. Locates thesis statements and topic sentences.",
+        day1: "Elicit: Compare social media post vs scientific journal abstract. Engage: Vocabulary audit of academic tone.",
+        day2: "Explore: Highlighting text structures in research papers. Explain: Academic objectivity.",
+        day3: "Elaborate: Annotating an academic paper relevant to student track.",
+        day4: "Evaluate: Text structure identification quiz and abstract critique worksheet.",
+        lasBg: "Academic language is formal, objective, cautious, and structurally organized.",
+        lasA1: "Read a research abstract and label its Introduction, Methodology, Results, and Discussion (IMRaD).",
+        lasA2: "Convert 5 informal, biased paragraphs into objective, academic prose.",
+        lasA3: "Write an academic review of a peer-reviewed article in your field of interest."
+      }
+    ],
+    "3": [
+      {
+        week: "Weeks 1–2",
+        topic: "Professional & Workplace Communication (Memos, Business Letters)",
+        code: "SHS-EC-T3-W1",
+        contentStandard: "The learner understands professional correspondence standards.",
+        performanceStandard: "The learner drafts standard business correspondence compliant with industry norms.",
+        learningCompetency: "Writes effective professional letters, memoranda, and executive incident reports.",
+        enablingCompetencies: "1. Formats block style business letters. 2. Uses appropriate formal salutations.",
+        day1: "Elicit: Critique poorly written complaint emails. Engage: Discuss cost of miscommunication in business.",
+        day2: "Explore: Anatomy of a formal memo and letter of request. Explain: The 7 Cs of Business Communication.",
+        day3: "Elaborate: Drafting an official sponsorship request letter for a school community outreach project.",
+        day4: "Evaluate: Rubric-based evaluation of drafted business letters.",
+        lasBg: "Professional correspondence reflects institutional credibility and requires concise clarity.",
+        lasA1: "Label the 7 essential parts of a standard Full Block business letter.",
+        lasA2: "Draft a formal internal memorandum reminding staff about workplace safety compliance.",
+        lasA3: "Compose a professional letter of inquiry addressed to a prospective Work Immersion partner company."
+      }
+    ]
+  },
+  "General Mathematics": {
+    "1": [
+      {
+        week: "Weeks 1–2",
+        topic: "Functions, Operations on Functions & Composition",
+        code: "SHS-GM-T1-W1",
+        contentStandard: "The learner demonstrates understanding of key concepts of functions and piecewise functions.",
+        performanceStandard: "The learner accurately models real-life situations using functions, including piecewise functions.",
+        learningCompetency: "Represents real-life situations using functions and performs operations on functions (addition, subtraction, multiplication, division, composition).",
+        enablingCompetencies: "1. Evaluates functions at given values. 2. Solves problems involving piecewise functions (e.g., jeepney fares, utility bills).",
+        day1: "Elicit: Recall Cartesian plane and vertical line test. Engage: Calculate jeepney fare matrix across distances.",
+        day2: "Explore: Formulating a piecewise function for mobile data consumption charges. Explain: Function algebra and (f o g)(x).",
+        day3: "Elaborate: Real-world modeling problem: Cost, revenue, and profit function optimization for a Senior High food kiosk.",
+        day4: "Evaluate: 5-item problem-solving seatwork on function composition and piecewise evaluation.",
+        lasBg: "A function is a mathematical relation where each input has exactly one output, widely used in business, science, and computer algorithms.",
+        lasA1: "Given f(x) = 2x^2 - 3x + 1 and g(x) = x - 4, compute: a) (f + g)(x), b) (f - g)(x), c) (f * g)(x), d) (f / g)(x).",
+        lasA2: "Formulate a piecewise function C(x) representing the electric bill where the first 50 kWh costs P8/kWh and excess costs P12/kWh.",
+        lasA3: "Solve: A computer technician charges P500 base fee plus P250 per hour of service. Write the cost function and find the cost for 4.5 hours."
+      }
+    ],
+    "2": [
+      {
+        week: "Weeks 1–2",
+        topic: "Simple and Compound Interest & Present Value",
+        code: "SHS-GM-T2-W1",
+        contentStandard: "The learner understands basic business mathematics concepts of simple and compound interest.",
+        performanceStandard: "The learner investigates and analyzes real-world investment scenarios to make wise financial choices.",
+        learningCompetency: "Illustrates simple and compound interest; computes interest, maturity value, and present value in loan/savings contracts.",
+        enablingCompetencies: "1. Differentiates Is = Prt from A = P(1 + r/n)^(nt). 2. Compares annual vs quarterly compounding.",
+        day1: "Elicit: Discussing personal savings in piggy banks vs cooperative bank accounts. Engage: Time value of money concept.",
+        day2: "Explore: Calculating total payout of P50,000 invested for 5 years under simple vs compound interest. Explain: Compounding effect.",
+        day3: "Elaborate: Investment advisory simulation: Advising an OFW family on placing remittance savings in Philippine Treasury bonds vs commercial banks.",
+        day4: "Evaluate: Problem-solving assessment computing compound interest and present value across compounding frequencies.",
+        lasBg: "Interest is the cost of borrowing money or the return on invested capital. Compound interest yields 'interest on interest'.",
+        lasA1: "Calculate simple interest earned on a P25,000 principal at 6% annual rate for 3.5 years.",
+        lasA2: "Determine the maturity value and compound interest if P80,000 is invested at 8% compounded quarterly for 4 years.",
+        lasA3: "How much money must be invested today at 7% compounded semi-annually to have P200,000 after 5 years for college tuition?"
+      }
+    ],
+    "3": [
+      {
+        week: "Weeks 1–2",
+        topic: "Mathematical Logic, Propositions & Truth Tables",
+        code: "SHS-GM-T3-W1",
+        contentStandard: "The learner understands key concepts of propositional logic, truth values, and logical arguments.",
+        performanceStandard: "The learner establishes the validity and fallacy of arguments to make informed decisions.",
+        learningCompetency: "Illustrates and symbolizes propositions; determines the truth value of compound propositions using truth tables.",
+        enablingCompetencies: "1. Distinguishes simple from compound propositions. 2. Uses negation, conjunction, disjunction, implication, and biconditional.",
+        day1: "Elicit: Identifying true/false statements vs subjective opinions. Engage: Riddles solved through logical deduction.",
+        day2: "Explore: Constructing truth tables for (p -> q) and its contrapositive (~q -> ~p). Explain: Logical equivalence and tautologies.",
+        day3: "Elaborate: Analyzing legal contracts or Philippine advertising claims to spot deceptive logical fallacies.",
+        day4: "Evaluate: Truth table verification test for 3 compound logical statements.",
+        lasBg: "Propositional logic forms the backbone of computational reasoning, legal debate, and structured scientific proof.",
+        lasA1: "Symbolize the following statements using p, q, and logical connectives (AND, OR, NOT, IF-THEN).",
+        lasA2: "Construct the full truth table for the statement: ~(p AND q) <-> (~p OR ~q) (De Morgan's Law).",
+        lasA3: "Identify the fallacy in the argument: 'If it rains, the grass is wet. The grass is wet, therefore it rained.'"
+      }
+    ]
+  },
+  "General Science": {
+    "1": [
+      {
+        week: "Weeks 1–2",
+        topic: "Earth Systems & Internal/External Geologic Processes",
+        code: "SHS-GS-T1-W1",
+        contentStandard: "The learner understands the Earth's subsystems (geosphere, hydrosphere, atmosphere, biosphere) and plate tectonics.",
+        performanceStandard: "The learner conducts a hazard risk evaluation of their local municipality regarding earthquakes and landslides.",
+        learningCompetency: "Describes the interactions between Earth subsystems and explains how internal heat drives plate tectonics and volcanism in the Philippine archipelago.",
+        enablingCompetencies: "1. Explains mantle convection currents. 2. Identifies Pacific Ring of Fire features.",
+        day1: "Elicit: Video footage of recent Mindanao earthquakes or volcanic tremors. Engage: Mapping local fault lines using DOST-PHIVOLCS FaultFinder.",
+        day2: "Explore: Modeling convergent, divergent, and transform plate boundaries with clay models. Explain: Magmatism and subduction zones.",
+        day3: "Elaborate: Preparing a Community Disaster Risk Reduction and Management (DRRM) evacuation plan for their barangay.",
+        day4: "Evaluate: 10-item diagram analysis on plate boundary mechanics and DRRM rubric evaluation.",
+        lasBg: "The Earth operates as a unified dynamic system where geological movements shape terrain, climate, and biological habitats.",
+        lasA1: "Draw and label a cross-section showing oceanic-continental subduction along the Philippine Trench.",
+        lasA2: "Explain why the Philippine archipelago experiences high seismic and volcanic activity in 4 scientific sentences.",
+        lasA3: "Formulate a 5-step emergency family action plan during a magnitude 7.0 earthquake."
+      }
+    ],
+    "2": [
+      {
+        week: "Weeks 1–2",
+        topic: "Atomic Structure, Periodic Trends & Chemical Bonding",
+        code: "SHS-GS-T2-W1",
+        contentStandard: "The learner understands the electronic structure of atoms and periodic trends in chemical reactivity.",
+        performanceStandard: "The learner predicts chemical behaviors and properties of substances used in everyday industry.",
+        learningCompetency: "Relates electron configuration to periodic properties and chemical bonding types.",
+        enablingCompetencies: "1. Writes spdf electron configurations. 2. Draws Lewis electron dot structures for ionic and covalent compounds.",
+        day1: "Elicit: Flame test demonstration. Engage: Mendeleev's periodic arrangement.",
+        day2: "Explore: Periodic trends across periods and groups. Explain: Electronegativity differences dictating polar vs non-polar covalent bonds.",
+        day3: "Elaborate: Investigating safety data sheets (SDS) of common household chemicals.",
+        day4: "Evaluate: Lewis structure drawing test and periodic trend prediction worksheet.",
+        lasBg: "Chemical bonding occurs when valence electrons interact to achieve a stable octet configuration, dictating physical properties.",
+        lasA1: "Write the full electron configuration and orbital diagram for Iron (Fe, atomic number 26).",
+        lasA2: "Arrange the elements Li, Na, K, and Cs in order of increasing atomic radius and explain the underlying trend.",
+        lasA3: "Draw Lewis dot structures for H2O, CO2, and NaCl, indicating bond polarity and formal charges."
+      }
+    ],
+    "3": [
+      {
+        week: "Weeks 1–2",
+        topic: "Classical Mechanics: Kinematics & Newton's Laws of Motion",
+        code: "SHS-GS-T3-W1",
+        contentStandard: "The learner understands kinematics equations and Newton's laws governing force and momentum.",
+        performanceStandard: "The learner builds a prototype demonstrating energy conservation and impact mitigation.",
+        learningCompetency: "Applies Newton's laws of motion and equations of uniformly accelerated motion to solve real-world velocity and momentum problems.",
+        enablingCompetencies: "1. Draws free-body diagrams (FBD). 2. Solves F = ma in multi-force systems.",
+        day1: "Elicit: Why do vehicle passengers jerk forward during sudden braking? Engage: Crash test dummy physics.",
+        day2: "Explore: Motion sensor lab measuring acceleration down an inclined ramp. Explain: Action-reaction pairs and impulse-momentum theorem.",
+        day3: "Elaborate: Designing an egg-drop container using principles of impulse reduction.",
+        day4: "Evaluate: Free-body diagram problem-solving test and egg-drop engineering evaluation.",
+        lasBg: "Newton's laws of motion provide the mathematical foundation for analyzing vehicle safety, aeronautics, and mechanical engineering.",
+        lasA1: "A 1200-kg car accelerates from rest to 25 m/s in 8.0 seconds. Compute the acceleration and net force exerted on the vehicle.",
+        lasA2: "Draw a complete Free-Body Diagram of a crate being pulled up an inclined plane with friction.",
+        lasA3: "Explain how airbags and vehicle crumple zones reduce injury during a collision using the impulse-momentum theorem."
+      }
+    ]
+  },
+  "Life and Career Skills": {
+    "1": [
+      {
+        week: "Weeks 1–2",
+        topic: "Self-Awareness, Emotional Intelligence & Personal Values",
+        code: "SHS-LCS-T1-W1",
+        contentStandard: "The learner understands their personal identity, strengths, emotional triggers, and foundational values.",
+        performanceStandard: "The learner creates a comprehensive personal development roadmap aligning values with career ambitions.",
+        learningCompetency: "Analyzes personal strengths, growth areas, and emotional intelligence competencies (Goleman framework) to guide life choices.",
+        enablingCompetencies: "1. Performs a Personal SWOT Analysis. 2. Identifies healthy emotional regulation techniques.",
+        day1: "Elicit: 'Who Am I?' reflective shield drawing activity. Engage: Daniel Goleman's 5 domains of EQ introduction.",
+        day2: "Explore: Facilitated peer-feedback circle on perceived character strengths. Explain: Self-awareness vs blind spots (Johari Window).",
+        day3: "Elaborate: Drafting an actionable Personal SWOT matrix.",
+        day4: "Evaluate: Rubric evaluation of Personal SWOT Portfolio and reflective self-assessment journal entry.",
+        lasBg: "Self-awareness is the cornerstone of leadership, enabling individuals to understand feelings, manage impulses, and build resilience.",
+        lasA1: "Complete your Johari Window matrix by listing 4 traits in Open Area, Blind Spot, Hidden Area, and Unknown Area.",
+        lasA2: "Construct a Personal SWOT analysis focusing on your Senior High School academic and technical skills.",
+        lasA3: "Write a 250-word reflective essay detailing a difficult situation where you successfully applied emotional self-regulation."
+      }
+    ],
+    "2": [
+      {
+        week: "Weeks 1–2",
+        topic: "Philippine Labor Market Trends & 21st Century In-Demand Skills",
+        code: "SHS-LCS-T2-W1",
+        contentStandard: "The learner understands current economic and labor market demands in the Philippines and ASEAN region.",
+        performanceStandard: "The learner formulates a viable career pathway matching personal competencies with market needs.",
+        learningCompetency: "Investigates emerging career trajectories, TechPro industries, and Fourth Industrial Revolution (4IR) skill sets.",
+        enablingCompetencies: "1. Analyzes DOLE and TESDA in-demand industry reports. 2. Identifies transferable technical and soft skills.",
+        day1: "Elicit: Which jobs existed 10 years ago that are gone today? Engage: AI and automation impact on local employment.",
+        day2: "Explore: Reviewing DOLE labor market occupational forecasts. Explain: Hard skills vs soft skills in hiring.",
+        day3: "Elaborate: Mapping Senior High School track specializations to high-growth regional industries in Region X.",
+        day4: "Evaluate: Career pathway alignment report and presentation of industry skill requirement matrices.",
+        lasBg: "The contemporary workforce demands adaptive professionals possessing both technical aptitude and interpersonal agility.",
+        lasA1: "List 5 high-demand industries in Northern Mindanao / Region X and note 2 essential competencies required by each.",
+        lasA2: "Compare the educational requirements, career growth, and starting compensation of your top 2 career choices.",
+        lasA3: "Draft an action plan detailing the certifications (NC II / NC III) or academic degrees needed to achieve your career goal."
+      }
+    ],
+    "3": [
+      {
+        week: "Weeks 1–2",
+        topic: "Financial Literacy, Personal Budgeting & Saving Systems",
+        code: "SHS-LCS-T3-W1",
+        contentStandard: "The learner understands principles of sound personal financial management, budgeting, and debt avoidance.",
+        performanceStandard: "The learner develops a realistic personal budget and emergency fund plan.",
+        learningCompetency: "Demonstrates practical financial literacy by drafting personal cash-flow budgets and identifying savings instruments.",
+        enablingCompetencies: "1. Applies the 50/30/20 budget framework. 2. Differentiates needs from wants.",
+        day1: "Elicit: How do you manage your weekly school allowance? Engage: Realities of inflation and purchasing power.",
+        day2: "Explore: Creating an interactive spreadsheet for daily expense tracking. Explain: The 50/30/20 rule (Needs, Wants, Savings).",
+        day3: "Elaborate: Budgeting simulation: Managing a monthly minimum wage salary for a young professional living in Cagayan de Oro.",
+        day4: "Evaluate: Personal monthly budget plan scored against accuracy, realism, and emergency savings allocation.",
+        lasBg: "Financial independence begins with disciplined cash-flow tracking, prioritizing emergency reserves, and smart spending.",
+        lasA1: "Categorize a list of 15 common teen expenses into 'Essential Needs', 'Discretionary Wants', and 'Future Savings'.",
+        lasA2: "Draft a weekly budget using the 50/30/20 rule based on a hypothetical allowance of P1,000.",
+        lasA3: "Calculate how long it will take to build a P15,000 emergency fund saving P250 each week."
+      }
+    ]
+  }
+};
+
+let activeBOW = GRADE_11_BOW;
+
+function initApp() {
+  populateSubjectDropdown();
+}
+
+function populateSubjectDropdown() {
+  const subjectSelect = document.getElementById('subject');
+  subjectSelect.innerHTML = '';
+  const subjects = Object.keys(activeBOW);
+  subjects.forEach(sub => {
+    const opt = document.createElement('option');
+    opt.value = sub;
+    opt.textContent = sub;
+    subjectSelect.appendChild(opt);
+  });
+  onSubjectChange();
+}
+
+function onSubjectChange() {
+  const subject = document.getElementById('subject').value;
+  const term = document.getElementById('term').value;
+  populateWeekDropdown(subject, term);
+}
+
+function onTermChange() {
+  const subject = document.getElementById('subject').value;
+  const term = document.getElementById('term').value;
+  populateWeekDropdown(subject, term);
+}
+
+function populateWeekDropdown(subject, term) {
+  const weekSelect = document.getElementById('week');
+  weekSelect.innerHTML = '';
+  const termList = (activeBOW[subject] && activeBOW[subject][term]) ? activeBOW[subject][term] : [];
+  
+  if (termList.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'No records in this term (Import BOW needed)';
+    weekSelect.appendChild(opt);
+    document.getElementById('bowStatus').innerHTML = '⚠️ No pre-loaded BOW entries for this term. Use "Import Custom BOW" to load more competencies.';
+    clearFields();
+    return;
+  }
+
+  termList.forEach((item, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = `${item.week} — ${item.topic}`;
+    weekSelect.appendChild(opt);
+  });
+
+  populateTopicDropdown(termList);
+}
+
+function populateTopicDropdown(termList) {
+  const topicSelect = document.getElementById('topic');
+  topicSelect.innerHTML = '';
+  termList.forEach((item, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = item.topic;
+    topicSelect.appendChild(opt);
+  });
+  onWeekChange();
+}
+
+function onWeekChange() {
+  const subject = document.getElementById('subject').value;
+  const term = document.getElementById('term').value;
+  const idx = document.getElementById('week').value;
+  const topicSelect = document.getElementById('topic');
+  topicSelect.value = idx;
+  loadEntryData(subject, term, idx);
+}
+
+function onTopicChange() {
+  const subject = document.getElementById('subject').value;
+  const term = document.getElementById('term').value;
+  const idx = document.getElementById('topic').value;
+  const weekSelect = document.getElementById('week');
+  weekSelect.value = idx;
+  loadEntryData(subject, term, idx);
+}
+
+function loadEntryData(subject, term, idx) {
+  if (idx === '' || !activeBOW[subject] || !activeBOW[subject][term] || !activeBOW[subject][term][idx]) {
+    return;
+  }
+  const data = activeBOW[subject][term][idx];
+
+  document.getElementById('contentStandard').value = data.contentStandard || '';
+  document.getElementById('performanceStandard').value = data.performanceStandard || '';
+  document.getElementById('learningCompetency').value = `[${data.code}] ${data.learningCompetency || ''}`;
+  document.getElementById('enablingCompetencies').value = data.enablingCompetencies || '';
+  document.getElementById('day1').value = data.day1 || '';
+  document.getElementById('day2').value = data.day2 || '';
+  document.getElementById('day3').value = data.day3 || '';
+  document.getElementById('day4').value = data.day4 || '';
+
+  document.getElementById('bowStatus').innerHTML = `
+    <strong>✓ Budget of Work Loaded:</strong> [${data.code}] ${data.topic} • ${subject} (Term ${term})
+  `;
+
+  renderILAW();
+}
+
+function clearFields() {
+  document.getElementById('contentStandard').value = '';
+  document.getElementById('performanceStandard').value = '';
+  document.getElementById('learningCompetency').value = '';
+  document.getElementById('enablingCompetencies').value = '';
+  document.getElementById('day1').value = '';
+  document.getElementById('day2').value = '';
+  document.getElementById('day3').value = '';
+  document.getElementById('day4').value = '';
+}
+
+function renderILAW() {
+  const school = document.getElementById('school').value;
+  const teacher = document.getElementById('teacher').value;
+  const section = document.getElementById('section').value;
+  const dates = document.getElementById('dates').value;
+  const division = document.getElementById('division').value;
+  const region = document.getElementById('region').value;
+
+  const subject = document.getElementById('subject').value;
+  const term = document.getElementById('term').value;
+  const weekText = document.getElementById('week').options[document.getElementById('week').selectedIndex]?.text || '';
+  const topic = document.getElementById('topic').options[document.getElementById('topic').selectedIndex]?.text || '';
+
+  const cs = document.getElementById('contentStandard').value;
+  const ps = document.getElementById('performanceStandard').value;
+  const lc = document.getElementById('learningCompetency').value;
+  const ec = document.getElementById('enablingCompetencies').value;
+
+  const d1 = document.getElementById('day1').value;
+  const d2 = document.getElementById('day2').value;
+  const d3 = document.getElementById('day3').value;
+  const d4 = document.getElementById('day4').value;
+
+  const res = document.getElementById('resources').value;
+  const integ = document.getElementById('integration').value;
+
+  // Header display
+  document.getElementById('dispSchool').textContent = school;
+  document.getElementById('dispTeacher').textContent = teacher;
+  document.getElementById('dispSection').textContent = section;
+  document.getElementById('dispDates').textContent = dates;
+  document.getElementById('dispDivision').textContent = division;
+  document.getElementById('dispRegion').textContent = region;
+  document.getElementById('dispSubject').textContent = subject;
+  document.getElementById('dispTerm').textContent = `Term ${term} (${weekText.split('—')[0]?.trim() || ''})`;
+  document.getElementById('dispTopic').textContent = topic;
+
+  document.getElementById('dispContentStandard').textContent = cs;
+  document.getElementById('dispPerformanceStandard').textContent = ps;
+  document.getElementById('dispLearningCompetency').textContent = lc;
+  document.getElementById('dispEnablingCompetencies').textContent = ec;
+
+  document.getElementById('dispDay1').innerHTML = formatText(d1);
+  document.getElementById('dispDay2').innerHTML = formatText(d2);
+  document.getElementById('dispDay3').innerHTML = formatText(d3);
+  document.getElementById('dispDay4').innerHTML = formatText(d4);
+
+  document.getElementById('dispResources').textContent = res;
+  document.getElementById('dispIntegration').textContent = integ;
+  document.getElementById('sigTeacher').textContent = teacher;
+
+  // Update LAS
+  const idx = document.getElementById('week').value;
+  const currentData = (activeBOW[subject] && activeBOW[subject][term] && activeBOW[subject][term][idx])
+    ? activeBOW[subject][term][idx]
+    : null;
+
+  document.getElementById('lasSection').textContent = section;
+  document.getElementById('lasSubject').textContent = subject;
+  document.getElementById('lasWeek').textContent = `Term ${term}, ${weekText.split('—')[0]?.trim() || ''}`;
+  document.getElementById('lasCompetency').textContent = lc;
+
+  if (currentData) {
+    document.getElementById('lasBackground').textContent = currentData.lasBg || cs;
+    document.getElementById('lasAct1').textContent = currentData.lasA1 || 'Activity 1: Foundational concept mastery drill.';
+    document.getElementById('lasAct2').textContent = currentData.lasA2 || 'Activity 2: Real-world application exercise.';
+    document.getElementById('lasAct3').textContent = currentData.lasA3 || 'Activity 3: Authentic performance task.';
+  } else {
+    document.getElementById('lasBackground').textContent = cs;
+    document.getElementById('lasAct1').textContent = 'Activity 1: Analyze the essential concepts of ' + topic;
+    document.getElementById('lasAct2').textContent = 'Activity 2: Apply the skills to practical scenarios.';
+    document.getElementById('lasAct3').textContent = 'Activity 3: Culminating performance task.';
+  }
+}
+
+function formatText(raw) {
+  if (!raw) return '<span style="color:#888;font-style:italic">No procedure outlined.</span>';
+  return raw
+    .replace(/(Elicit:)/g, '<span class="step-tag">1. $1</span>')
+    .replace(/(Engage:)/g, '<span class="step-tag">2. $1</span>')
+    .replace(/(Explore:)/g, '<span class="step-tag">1. $1</span>')
+    .replace(/(Explain:)/g, '<span class="step-tag">2. $1</span>')
+    .replace(/(Elaborate:)/g, '<span class="step-tag">1. $1</span>')
+    .replace(/(Evaluate:)/g, '<span class="step-tag">1. $1</span>')
+    .replace(/(Extend:)/g, '<span class="step-tag">2. $1</span>');
+}
+
+function exportBOWJSON() {
+  const jsonStr = JSON.stringify(activeBOW, null, 2);
+  const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `DepEd_Grade11_ThreeTerm_BOW_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function importBOWJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const importedData = JSON.parse(e.target.result);
+      if (typeof importedData === 'object' && Object.keys(importedData).length > 0) {
+        activeBOW = importedData;
+        populateSubjectDropdown();
+        alert('✓ Successfully imported custom Budget of Work database!');
+      } else {
+        alert('Invalid BOW JSON format.');
+      }
+    } catch (err) {
+      alert('Error parsing JSON file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+window.addEventListener('DOMContentLoaded', initApp);
+</script>
+</body>
+</html>
