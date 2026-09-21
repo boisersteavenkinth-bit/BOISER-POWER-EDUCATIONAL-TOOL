@@ -13,8 +13,11 @@ import {
   RotateCcw,
   CheckCircle2,
   FileSpreadsheet,
-  FileText
+  FileText,
+  FileDown,
+  Loader2
 } from 'lucide-react';
+import { exportDepEdRegionXPDF, DepEdILAWExportData, PDFExportMode } from '../utils/depedPdfExporter';
 
 interface BOWEntry {
   week: string;
@@ -391,6 +394,9 @@ export const ILAWGenerator: React.FC = () => {
   // UI state
   const [viewMode, setViewMode] = useState<'ilaw' | 'las' | 'svg' | 'assets'>('ilaw');
   const [copied, setCopied] = useState<boolean>(false);
+  const [isExportingPDF, setIsExportingPDF] = useState<boolean>(false);
+  const [pdfSuccessMessage, setPdfSuccessMessage] = useState<string | null>(null);
+  const [pdfExportMode, setPdfExportMode] = useState<PDFExportMode>('full');
 
   // Auto-load entry when subject, term, or week changes
   useEffect(() => {
@@ -559,6 +565,50 @@ export const ILAWGenerator: React.FC = () => {
   </text>
 </svg>
     `.trim();
+  };
+
+  const handleExportPDF = (mode: PDFExportMode = pdfExportMode) => {
+    setIsExportingPDF(true);
+    try {
+      const exportData: DepEdILAWExportData = {
+        school,
+        teacher,
+        section,
+        dates,
+        division,
+        region,
+        principal,
+        subject: selectedSubject,
+        term: selectedTerm,
+        week: activeEntry?.week || 'Week 1',
+        topic: activeEntry?.topic || 'Curriculum Competency Focus',
+        code: activeEntry?.code || 'SHS-2026',
+        contentStandard,
+        performanceStandard,
+        learningCompetency,
+        enablingCompetencies,
+        session1,
+        session2,
+        session3,
+        session4,
+        resources,
+        integration,
+        lasBg: activeEntry?.lasBg,
+        lasA1: activeEntry?.lasA1,
+        lasA2: activeEntry?.lasA2,
+        lasA3: activeEntry?.lasA3,
+      };
+
+      exportDepEdRegionXPDF(exportData, mode);
+      const label = mode === 'full' ? 'Full Packet (ILAW & LAS)' : mode === 'ilaw' ? 'ILAW Plan' : 'LAS Sheet';
+      setPdfSuccessMessage(`✓ Exported DepEd Region X Formal PDF (${label}) successfully!`);
+      setTimeout(() => setPdfSuccessMessage(null), 4500);
+    } catch (err: any) {
+      console.error('PDF export error:', err);
+      alert('Unable to generate PDF document: ' + (err?.message || 'Please try again.'));
+    } finally {
+      setIsExportingPDF(false);
+    }
   };
 
   const handleCopySVG = () => {
@@ -795,15 +845,43 @@ export const ILAWGenerator: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
+            {/* Formal DepEd PDF Export Group */}
+            <div className="inline-flex items-center rounded-xl bg-[#0038A8] p-0.5 shadow-sm">
+              <select
+                value={pdfExportMode}
+                onChange={(e) => setPdfExportMode(e.target.value as PDFExportMode)}
+                aria-label="Select PDF Export Scope"
+                className="text-[11px] font-bold bg-[#002776] text-white py-1.5 px-2.5 rounded-lg border-none focus:outline-none cursor-pointer"
+              >
+                <option value="full">Full Packet (ILAW + LAS • 3 Pgs)</option>
+                <option value="ilaw">ILAW Plan Only (2 Pgs)</option>
+                <option value="las">LAS Activity Sheet (1 Pg)</option>
+              </select>
+
+              <button
+                onClick={() => handleExportPDF(pdfExportMode)}
+                disabled={isExportingPDF}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white hover:text-[#FCD116] transition cursor-pointer disabled:opacity-50"
+                title="Generate and download official DepEd Region X PDF Document"
+              >
+                {isExportingPDF ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FCD116]" />
+                ) : (
+                  <FileDown className="w-3.5 h-3.5 text-[#FCD116]" />
+                )}
+                <span>{isExportingPDF ? 'Generating...' : 'Export Formal PDF'}</span>
+              </button>
+            </div>
+
             <a
               href="/ilaw/ilaw-generator.html"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-semibold transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0038A8] border border-blue-200 text-xs font-semibold transition cursor-pointer"
               title="Launch the exact standalone HTML ILAW generator tool in a new tab"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-blue-700" />
-              <span>Open Standalone HTML (As Is)</span>
+              <ExternalLink className="w-3.5 h-3.5 text-[#0038A8]" />
+              <span>Standalone HTML</span>
             </a>
             <button
               onClick={() => window.print()}
@@ -817,22 +895,66 @@ export const ILAWGenerator: React.FC = () => {
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-purple-50 text-purple-800 hover:bg-purple-100 border border-purple-200 text-xs font-semibold transition cursor-pointer"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Copied SVG to Clipboard!' : 'Copy SVG for Figma'}</span>
+              <span>{copied ? 'Copied SVG!' : 'Copy SVG for Figma'}</span>
             </button>
             <button
               onClick={handleDownloadSVG}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-semibold transition cursor-pointer"
             >
               <Download className="w-3.5 h-3.5 text-stone-600" />
-              <span>Download .SVG</span>
+              <span>.SVG</span>
             </button>
           </div>
         </div>
+
+        {/* Success / Notification Banner */}
+        {pdfSuccessMessage && (
+          <div className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-900 rounded-2xl text-xs flex items-center justify-between gap-2 shadow-xs animate-in fade-in duration-200">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="font-semibold">{pdfSuccessMessage}</span>
+            </div>
+            <span className="text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full font-bold">
+              DepEd Region X Standard Format Ready
+            </span>
+          </div>
+        )}
       </div>
 
       {/* VIEW 1: Official Region X ILAW Template */}
       {viewMode === 'ilaw' && (
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-stone-300 shadow-sm space-y-6 print:shadow-none print:border-none print:p-0">
+          {/* View Toolbar Banner */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-200 print:hidden">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-lg bg-[#0038A8] text-white text-xs font-bold flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-[#FCD116]" />
+                Region X Formal Record Template
+              </span>
+              <span className="text-xs text-stone-500 hidden sm:inline">
+                Strengthened SHS • 4-Session Daily Flow (SY 2026–2027)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleExportPDF('ilaw')}
+                disabled={isExportingPDF}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0038A8] hover:bg-[#002776] text-white text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isExportingPDF ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5 text-[#FCD116]" />}
+                <span>Export ILAW PDF (2 Pages)</span>
+              </button>
+              <button
+                onClick={() => handleExportPDF('full')}
+                disabled={isExportingPDF}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-stone-900 hover:bg-black text-white text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <FileDown className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Export Full Packet (ILAW + LAS)</span>
+              </button>
+            </div>
+          </div>
+
           {/* Official DepEd Region X Header */}
           <div className="text-center space-y-1 border-b-2 border-stone-800 pb-5">
             <div className="text-[11px] tracking-widest uppercase font-semibold text-stone-600">
@@ -1021,6 +1143,37 @@ export const ILAWGenerator: React.FC = () => {
       {/* VIEW 2: Learning Activity Sheet (LAS) */}
       {viewMode === 'las' && (
         <div className="bg-white rounded-3xl p-6 sm:p-10 border border-stone-300 shadow-sm space-y-6">
+          {/* LAS View Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-stone-200 print:hidden">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-lg bg-teal-800 text-white text-xs font-bold flex items-center gap-1.5">
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                Region X Student Activity Sheet (LAS)
+              </span>
+              <span className="text-xs text-stone-500 hidden sm:inline">
+                Three Tiered Tasks with Analytic Scoring Rubric
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleExportPDF('las')}
+                disabled={isExportingPDF}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                {isExportingPDF ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5 text-teal-200" />}
+                <span>Export LAS PDF (1 Page)</span>
+              </button>
+              <button
+                onClick={() => handleExportPDF('full')}
+                disabled={isExportingPDF}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#0038A8] hover:bg-[#002776] text-white text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <FileDown className="w-3.5 h-3.5 text-[#FCD116]" />
+                <span>Export Full Packet</span>
+              </button>
+            </div>
+          </div>
+
           <div className="text-center space-y-1 border-b-2 border-stone-800 pb-4">
             <h2 className="text-xl font-bold font-serif uppercase tracking-wide text-stone-900">
               LEARNING ACTIVITY SHEET (LAS) — REGION X
