@@ -17,7 +17,7 @@ import {
   FileDown,
   Loader2
 } from 'lucide-react';
-import { exportDepEdRegionXPDF, DepEdILAWExportData, PDFExportMode } from '../utils/depedPdfExporter';
+import { exportDepEdRegionXPDF, exportBatchDepEdRegionXPDF, DepEdILAWExportData, PDFExportMode } from '../utils/depedPdfExporter';
 
 interface BOWEntry {
   week: string;
@@ -611,6 +611,62 @@ export const ILAWGenerator: React.FC = () => {
     }
   };
 
+  const handleBatchExportPDF = () => {
+    setIsExportingPDF(true);
+    try {
+      const subjectTerms = bowData[selectedSubject] || {};
+      const allEntries: DepEdILAWExportData[] = [];
+
+      Object.entries(subjectTerms).forEach(([termKey, entries]) => {
+        entries.forEach((entry) => {
+          allEntries.push({
+            school,
+            teacher,
+            section,
+            dates: `Term ${termKey} - ${entry.week}`,
+            division,
+            region,
+            principal,
+            subject: selectedSubject,
+            term: termKey,
+            week: entry.week,
+            topic: entry.topic,
+            code: entry.code,
+            contentStandard: entry.contentStandard,
+            performanceStandard: entry.performanceStandard,
+            learningCompetency: `[${entry.code}] ${entry.learningCompetency}`,
+            enablingCompetencies: entry.enablingCompetencies,
+            session1: entry.s1,
+            session2: entry.s2,
+            session3: entry.s3,
+            session4: entry.s4,
+            resources,
+            integration,
+            lasBg: entry.lasBg,
+            lasA1: entry.lasA1,
+            lasA2: entry.lasA2,
+            lasA3: entry.lasA3,
+          });
+        });
+      });
+
+      if (allEntries.length === 0) {
+        alert('No lesson plans found for batch export.');
+        setIsExportingPDF(false);
+        return;
+      }
+
+      exportBatchDepEdRegionXPDF(allEntries, `Consolidated ILAW Lesson Plans — ${selectedSubject} (SY 2026-2027)`);
+      setPdfSuccessMessage(`✓ Exported Batch PDF (${allEntries.length} Lesson Plans with DepEd Region X Cover Page & Table of Contents) successfully!`);
+      setTimeout(() => setPdfSuccessMessage(null), 6000);
+    } catch (err: any) {
+      console.error('Batch PDF export error:', err);
+      alert('Unable to generate batch PDF document: ' + (err?.message || 'Please try again.'));
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
   const handleCopySVG = () => {
     const svgCode = generateFigmaSVGString();
     navigator.clipboard.writeText(svgCode).then(() => {
@@ -663,6 +719,16 @@ export const ILAWGenerator: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {pdfSuccessMessage && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-bold flex items-center justify-between shadow-xs animate-fade-in">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <span>{pdfSuccessMessage}</span>
+          </div>
+          <span className="text-[11px] text-emerald-700 font-normal">Official DepEd Region X Document</span>
+        </div>
+      )}
+
       {/* Top Banner - DepEd Blue, Gold, and Red */}
       <div className="bg-[#0038A8] text-white rounded-3xl p-6 sm:p-8 shadow-xs space-y-4 border-b-4 border-[#FCD116]">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -872,6 +938,20 @@ export const ILAWGenerator: React.FC = () => {
                 <span>{isExportingPDF ? 'Generating...' : 'Export Formal PDF'}</span>
               </button>
             </div>
+
+            <button
+              onClick={handleBatchExportPDF}
+              disabled={isExportingPDF}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition cursor-pointer shadow-sm disabled:opacity-50"
+              title="Batch export all lesson plans in this subject as a single organized PDF with DepEd Region X summary cover page & Table of Contents"
+            >
+              {isExportingPDF ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Layers className="w-3.5 h-3.5" />
+              )}
+              <span>Batch Export All Plans ({selectedSubject})</span>
+            </button>
 
             <a
               href="/ilaw/ilaw-generator.html"

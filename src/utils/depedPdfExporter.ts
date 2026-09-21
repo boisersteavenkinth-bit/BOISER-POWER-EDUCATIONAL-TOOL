@@ -31,36 +31,29 @@ export interface DepEdILAWExportData {
 
 export type PDFExportMode = 'full' | 'ilaw' | 'las';
 
-export function exportDepEdRegionXPDF(
+function renderLessonPlan(
+  doc: jsPDF,
   data: DepEdILAWExportData,
-  mode: PDFExportMode = 'full'
-): void {
-  // A4 size: 210mm x 297mm
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-    compress: true
-  });
-
+  mode: PDFExportMode = 'full',
+  isFirstPage: boolean = true
+) {
   const pageWidth = 210;
   const pageHeight = 297;
   const marginX = 14;
   const contentWidth = pageWidth - marginX * 2; // 182mm
-  const bottomLimit = pageHeight - 16;
 
   // DepEd Official Palette (RGB)
   const DEPED_BLUE = { r: 0, g: 56, b: 168 };
   const DEPED_NAVY = { r: 0, g: 39, b: 118 };
   const DEPED_GOLD = { r: 252, g: 209, b: 22 };
-  const DEPED_RED = { r: 206, g: 17, b: 38 };
   const LIGHT_GRAY = { r: 243, g: 244, b: 246 };
   const BORDER_GRAY = { r: 160, g: 160, b: 160 };
   const DARK_TEXT = { r: 20, g: 20, b: 20 };
 
+  const totalPages = mode === 'full' ? 3 : mode === 'ilaw' ? 2 : 1;
+
   // Helper: Draw running header on ILAW pages
   const drawOfficialHeader = (subtitleText: string) => {
-    // Top colored indicator bars
     doc.setFillColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
     doc.rect(marginX, 8, contentWidth, 2.5, 'F');
     doc.setFillColor(DEPED_GOLD.r, DEPED_GOLD.g, DEPED_GOLD.b);
@@ -88,13 +81,11 @@ export function exportDepEdRegionXPDF(
     doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
     doc.text((data.school || 'LANAO DEL NORTE NATIONAL COMPREHENSIVE HIGH SCHOOL').toUpperCase(), pageWidth / 2, y, { align: 'center' });
 
-    // Official divider line
     y += 3;
     doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
     doc.setLineWidth(0.4);
     doc.line(marginX, y, marginX + contentWidth, y);
 
-    // Title banner block
     y += 2;
     doc.setFillColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
     doc.rect(marginX, y, contentWidth, 7, 'F');
@@ -117,8 +108,7 @@ export function exportDepEdRegionXPDF(
     return y + 3;
   };
 
-  // Helper: Draw footer on all pages
-  const drawOfficialFooter = (pageNum: number, totalPages: number) => {
+  const drawOfficialFooter = (pageNum: number) => {
     const y = pageHeight - 10;
     doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
     doc.setLineWidth(0.3);
@@ -136,7 +126,6 @@ export function exportDepEdRegionXPDF(
     doc.text(`Page ${pageNum} of ${totalPages}`, marginX + contentWidth, y + 4, { align: 'right' });
   };
 
-  // Helper: Draw bordered cell
   const drawCell = (
     x: number,
     y: number,
@@ -178,7 +167,6 @@ export function exportDepEdRegionXPDF(
     });
   };
 
-  // Helper: Draw Section Ribbon
   const drawSectionRibbon = (title: string, yPos: number): number => {
     doc.setFillColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
     doc.rect(marginX, yPos, contentWidth, 5.2, 'F');
@@ -189,55 +177,47 @@ export function exportDepEdRegionXPDF(
     return yPos + 5.2;
   };
 
-  // Compute total pages based on mode
-  const totalPages = mode === 'full' ? 3 : mode === 'ilaw' ? 2 : 1;
+  if (!isFirstPage) {
+    doc.addPage();
+  }
 
-  // ==========================================
-  // PAGE 1: ILAW Document - Standards & Plan (Days 1 & 2)
-  // ==========================================
+  // ================= PAGE 1 =================
   if (mode === 'full' || mode === 'ilaw') {
+    if (!isFirstPage) {
+      // already added page
+    }
     let currentY = drawOfficialHeader(
       'INSTRUCTIONAL LEADERSHIP AND ACADEMIC WORKFLOW (ILAW) — PART 1'
     );
 
-    // Meta Information Table (4-column grid)
-    doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
-    doc.setLineWidth(0.25);
-
     const col1W = 34;
     const col2W = 60;
     const col3W = 38;
-    const col4W = contentWidth - col1W - col2W - col3W; // 50mm
+    const col4W = contentWidth - col1W - col2W - col3W;
     const rowH = 6.2;
 
-    // Row 1
     drawCell(marginX, currentY, col1W, rowH, 'TEACHER', true, 7.5, true);
     drawCell(marginX + col1W, currentY, col2W, rowH, data.teacher || 'Subject Teacher', false, 8, true);
     drawCell(marginX + col1W + col2W, currentY, col3W, rowH, 'LEARNING AREA', true, 7.5, true);
     drawCell(marginX + col1W + col2W + col3W, currentY, col4W, rowH, data.subject, false, 8, true, DEPED_NAVY);
     currentY += rowH;
 
-    // Row 2
     drawCell(marginX, currentY, col1W, rowH, 'TEACHING DATES', true, 7.5, true);
     drawCell(marginX + col1W, currentY, col2W, rowH, data.dates || 'Week 1 (4 Sessions • 60 mins)', false, 7.5);
     drawCell(marginX + col1W + col2W, currentY, col3W, rowH, 'GRADE & SECTION', true, 7.5, true);
     drawCell(marginX + col1W + col2W + col3W, currentY, col4W, rowH, data.section || 'Grade 11 - Section 1', false, 7.5);
     currentY += rowH;
 
-    // Row 3
     drawCell(marginX, currentY, col1W, rowH, 'GRADING PERIOD', true, 7.5, true);
     drawCell(marginX + col1W, currentY, col2W, rowH, `Term ${data.term} (Weeks 1–10)`, false, 7.5);
     drawCell(marginX + col1W + col2W, currentY, col3W, rowH, 'CURRICULUM', true, 7.5, true);
     drawCell(marginX + col1W + col2W + col3W, currentY, col4W, rowH, 'Strengthened SHS (DO 015, s. 2026)', false, 7.5);
     currentY += rowH + 2;
 
-    // SECTION I: OBJECTIVES & STANDARDS
     currentY = drawSectionRibbon('I. OBJECTIVES & CURRICULUM STANDARDS', currentY);
-
     const standardHeaderW = 42;
     const standardContentW = contentWidth - standardHeaderW;
 
-    // Content Standard Row
     const csText = data.contentStandard || 'Understands disciplinary principles and context.';
     const csLines = doc.splitTextToSize(csText, standardContentW - 4);
     const csH = Math.max(9, csLines.length * 3.8 + 4);
@@ -245,7 +225,6 @@ export function exportDepEdRegionXPDF(
     drawCell(marginX + standardHeaderW, currentY, standardContentW, csH, csText, false, 7.5);
     currentY += csH;
 
-    // Performance Standard Row
     const psText = data.performanceStandard || 'Applies knowledge independently in practical collaborative tasks.';
     const psLines = doc.splitTextToSize(psText, standardContentW - 4);
     const psH = Math.max(9, psLines.length * 3.8 + 4);
@@ -253,7 +232,6 @@ export function exportDepEdRegionXPDF(
     drawCell(marginX + standardHeaderW, currentY, standardContentW, psH, psText, false, 7.5);
     currentY += psH;
 
-    // Learning Competency Row
     const lcText = data.learningCompetency || 'Learning Competency';
     const lcLines = doc.splitTextToSize(lcText, standardContentW - 4);
     const lcH = Math.max(9, lcLines.length * 3.8 + 4);
@@ -261,41 +239,35 @@ export function exportDepEdRegionXPDF(
     drawCell(marginX + standardHeaderW, currentY, standardContentW, lcH, lcText, false, 7.5, true, DEPED_NAVY);
     currentY += lcH;
 
-    // Enabling Competencies Row
-    const ecText = data.enablingCompetencies || '1. Distinguishes foundational concepts. 2. Applies relevant strategies.';
+    const ecText = data.enablingCompetencies || '1. Distinguishes foundational concepts.';
     const ecLines = doc.splitTextToSize(ecText, standardContentW - 4);
     const ecH = Math.max(7.5, ecLines.length * 3.6 + 3);
     drawCell(marginX, currentY, standardHeaderW, ecH, 'D. Enabling Competency', true, 7.5, true);
     drawCell(marginX + standardHeaderW, currentY, standardContentW, ecH, ecText, false, 7.5);
     currentY += ecH + 2;
 
-    // SECTION II: CONTENT
     currentY = drawSectionRibbon('II. CONTENT / TOPIC FOCUS', currentY);
     const topicH = 7;
     drawCell(marginX, currentY, standardHeaderW, topicH, 'Subject Matter Focus', true, 7.5, true);
     drawCell(marginX + standardHeaderW, currentY, standardContentW, topicH, `${data.week} — ${data.topic}`, false, 8, true, DEPED_NAVY);
     currentY += topicH + 2;
 
-    // SECTION III: LEARNING RESOURCES & INTEGRATION
     currentY = drawSectionRibbon('III. LEARNING RESOURCES & INTEGRATION', currentY);
     const resH = 8;
     drawCell(marginX, currentY, standardHeaderW, resH, 'A. References & Materials', true, 7.5, true);
-    drawCell(marginX + standardHeaderW, currentY, standardContentW, resH, data.resources || 'DepEd Strengthened SHS BOW, Learner Materials.', false, 7.2);
+    drawCell(marginX + standardHeaderW, currentY, standardContentW, resH, data.resources || 'DepEd Strengthened SHS BOW.', false, 7.2);
     currentY += resH;
 
     const intH = 8;
     drawCell(marginX, currentY, standardHeaderW, intH, 'B. Cross-Curricular Link', true, 7.5, true);
-    drawCell(marginX + standardHeaderW, currentY, standardContentW, intH, data.integration || 'STEM Linkages, Career Preparedness, Digital Responsibility.', false, 7.2);
+    drawCell(marginX + standardHeaderW, currentY, standardContentW, intH, data.integration || 'STEM Linkages, Career Preparedness.', false, 7.2);
     currentY += intH + 2;
 
-    // SECTION IV: PROCEDURES - SESSIONS 1 & 2
     currentY = drawSectionRibbon('IV. PROCEDURES (FOUR-SESSION DAILY LESSON FLOW) — SESSIONS 1 & 2', currentY);
-
     const sessionW = contentWidth / 2;
     const sessionHeadH = 6;
     const sessionBoxH = 34;
 
-    // Session 1 Header
     doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
     doc.rect(marginX, currentY, sessionW, sessionHeadH, 'FD');
     doc.setFont('helvetica', 'bold');
@@ -303,40 +275,24 @@ export function exportDepEdRegionXPDF(
     doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
     doc.text('SESSION 1 (DAY 1): ELICIT & ENGAGE', marginX + sessionW / 2, currentY + 4, { align: 'center' });
 
-    // Session 2 Header
     doc.rect(marginX + sessionW, currentY, sessionW, sessionHeadH, 'FD');
     doc.text('SESSION 2 (DAY 2): EXPLORE & EXPLAIN', marginX + sessionW * 1.5, currentY + 4, { align: 'center' });
     currentY += sessionHeadH;
 
-    // Session 1 Body
-    drawCell(marginX, currentY, sessionW, sessionBoxH, data.session1 || 'Elicit prior knowledge and introduce target concept.', false, 7.2);
-    // Session 2 Body
-    drawCell(marginX + sessionW, currentY, sessionW, sessionBoxH, data.session2 || 'Guided small-group exploration and concept modeling.', false, 7.2);
+    drawCell(marginX, currentY, sessionW, sessionBoxH, data.session1 || 'Elicit prior knowledge.', false, 7.2);
+    drawCell(marginX + sessionW, currentY, sessionW, sessionBoxH, data.session2 || 'Guided small-group exploration.', false, 7.2);
     currentY += sessionBoxH + 2;
 
-    // Continued note
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(7);
-    doc.setTextColor(110, 110, 110);
-    doc.text(
-      'Sessions 3 & 4 (Elaborate & Evaluate), Remarks, Reflection, and Official Signatures are continued on Page 2.',
-      marginX,
-      currentY + 2
-    );
-
-    drawOfficialFooter(1, totalPages);
+    drawOfficialFooter(1);
   }
 
-  // ==========================================
-  // PAGE 2: ILAW Document - Sessions 3 & 4, Remarks, Reflection & Signatures
-  // ==========================================
+  // ================= PAGE 2 =================
   if (mode === 'full' || mode === 'ilaw') {
     doc.addPage();
     let currentY = drawOfficialHeader(
       'INSTRUCTIONAL LEADERSHIP AND ACADEMIC WORKFLOW (ILAW) — PART 2'
     );
 
-    // Summary sub-header
     doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
     doc.rect(marginX, currentY, contentWidth, 6, 'FD');
     doc.setFont('helvetica', 'bold');
@@ -349,14 +305,11 @@ export function exportDepEdRegionXPDF(
     );
     currentY += 8;
 
-    // SECTION IV CONTINUED: PROCEDURES - SESSIONS 3 & 4
     currentY = drawSectionRibbon('IV. PROCEDURES (FOUR-SESSION DAILY LESSON FLOW) — SESSIONS 3 & 4', currentY);
-
     const sessionW = contentWidth / 2;
     const sessionHeadH = 6;
     const sessionBoxH = 42;
 
-    // Session 3 Header
     doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
     doc.rect(marginX, currentY, sessionW, sessionHeadH, 'FD');
     doc.setFont('helvetica', 'bold');
@@ -364,18 +317,14 @@ export function exportDepEdRegionXPDF(
     doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
     doc.text('SESSION 3 (DAY 3): ELABORATE & DEEPEN', marginX + sessionW / 2, currentY + 4, { align: 'center' });
 
-    // Session 4 Header
     doc.rect(marginX + sessionW, currentY, sessionW, sessionHeadH, 'FD');
     doc.text('SESSION 4 (DAY 4): EVALUATE & EXTEND', marginX + sessionW * 1.5, currentY + 4, { align: 'center' });
     currentY += sessionHeadH;
 
-    // Session 3 Body
-    drawCell(marginX, currentY, sessionW, sessionBoxH, data.session3 || 'Collaborative simulation, real-world scenario analysis, and problem-solving.', false, 7.2);
-    // Session 4 Body
-    drawCell(marginX + sessionW, currentY, sessionW, sessionBoxH, data.session4 || 'Formative assessment check, authentic performance scoring, and mastery reflection.', false, 7.2);
+    drawCell(marginX, currentY, sessionW, sessionBoxH, data.session3 || 'Collaborative simulation.', false, 7.2);
+    drawCell(marginX + sessionW, currentY, sessionW, sessionBoxH, data.session4 || 'Formative assessment check.', false, 7.2);
     currentY += sessionBoxH + 3;
 
-    // SECTION V: REMARKS
     currentY = drawSectionRibbon('V. REMARKS & FORMATIVE ASSESSMENT TRACKING', currentY);
     const remarksH = 22;
     const remarksText =
@@ -386,7 +335,6 @@ export function exportDepEdRegionXPDF(
     drawCell(marginX, currentY, contentWidth, remarksH, remarksText, false, 7.5);
     currentY += remarksH + 3;
 
-    // SECTION VI: REFLECTION
     currentY = drawSectionRibbon('VI. REFLECTION & INSTRUCTIONAL SUPERVISION', currentY);
     const reflectionH = 24;
     const reflectionText =
@@ -399,14 +347,9 @@ export function exportDepEdRegionXPDF(
     drawCell(marginX, currentY, contentWidth, reflectionH, reflectionText, false, 7.2);
     currentY += reflectionH + 6;
 
-    // SIGNATURES BLOCK (3 Columns)
-    doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
-    doc.setLineWidth(0.3);
-
     const sigColW = contentWidth / 3;
     const sigBoxH = 28;
 
-    // Column 1: Prepared by
     doc.rect(marginX, currentY, sigColW, sigBoxH, 'D');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
@@ -424,7 +367,6 @@ export function exportDepEdRegionXPDF(
     doc.setTextColor(90, 90, 90);
     doc.text('Special Science Teacher II / Subject Teacher', marginX + sigColW / 2, currentY + 23, { align: 'center' });
 
-    // Column 2: Checked by
     doc.rect(marginX + sigColW, currentY, sigColW, sigBoxH, 'D');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
@@ -441,7 +383,6 @@ export function exportDepEdRegionXPDF(
     doc.setTextColor(90, 90, 90);
     doc.text('Department Head, SHS Academic Track', marginX + sigColW * 1.5, currentY + 23, { align: 'center' });
 
-    // Column 3: Noted by
     doc.rect(marginX + sigColW * 2, currentY, sigColW, sigBoxH, 'D');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7.5);
@@ -458,22 +399,16 @@ export function exportDepEdRegionXPDF(
     doc.setTextColor(90, 90, 90);
     doc.text('Secondary School Principal IV / School Head', marginX + sigColW * 2.5, currentY + 23, { align: 'center' });
 
-    const page2Index = mode === 'full' ? 2 : 2;
-    drawOfficialFooter(page2Index, totalPages);
+    drawOfficialFooter(2);
   }
 
-  // ==========================================
-  // PAGE 3: Official Learning Activity Sheet (LAS)
-  // ==========================================
+  // ================= PAGE 3 =================
   if (mode === 'full' || mode === 'las') {
-    if (mode === 'full') {
-      doc.addPage();
-    }
+    doc.addPage();
     let currentY = drawOfficialHeader(
       'LEARNING ACTIVITY SHEET (LAS) — REGION X'
     );
 
-    // Learner Header Box
     const learnerBoxH = 18;
     doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
     doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
@@ -483,7 +418,6 @@ export function exportDepEdRegionXPDF(
     doc.setFontSize(7.5);
     doc.setTextColor(70, 70, 70);
 
-    // Learner Row 1
     doc.text('Learner Name:', marginX + 3, currentY + 4.5);
     doc.setFont('helvetica', 'normal');
     doc.text('________________________________________________', marginX + 23, currentY + 4.5);
@@ -493,7 +427,6 @@ export function exportDepEdRegionXPDF(
     doc.setFont('helvetica', 'normal');
     doc.text(data.section || 'Grade 11 - Section 1', marginX + 135, currentY + 4.5);
 
-    // Learner Row 2
     doc.setFont('helvetica', 'bold');
     doc.text('Learning Area:', marginX + 3, currentY + 10);
     doc.setFont('helvetica', 'normal');
@@ -504,7 +437,6 @@ export function exportDepEdRegionXPDF(
     doc.setFont('helvetica', 'normal');
     doc.text('________________________', marginX + 135, currentY + 10);
 
-    // Learner Row 3
     doc.setFont('helvetica', 'bold');
     doc.text('Subject Teacher:', marginX + 3, currentY + 15.5);
     doc.setFont('helvetica', 'normal');
@@ -517,7 +449,6 @@ export function exportDepEdRegionXPDF(
 
     currentY += learnerBoxH + 3;
 
-    // Competency Banner
     doc.setFillColor(235, 242, 255);
     doc.setDrawColor(180, 205, 255);
     doc.rect(marginX, currentY, contentWidth, 10, 'FD');
@@ -531,42 +462,36 @@ export function exportDepEdRegionXPDF(
     doc.text(compShort, marginX + 3, currentY + 7);
     currentY += 12;
 
-    // LAS Section 1: Background Information for Learners
     currentY = drawSectionRibbon('I. BACKGROUND INFORMATION FOR LEARNERS', currentY);
-    const bgText = data.lasBg || data.contentStandard || 'Review the conceptual fundamentals and apply disciplinary frameworks.';
+    const bgText = data.lasBg || data.contentStandard || 'Review the conceptual fundamentals.';
     const bgLines = doc.splitTextToSize(bgText, contentWidth - 4);
     const bgH = Math.min(22, Math.max(12, bgLines.length * 3.6 + 4));
     drawCell(marginX, currentY, contentWidth, bgH, bgText, false, 7.5);
     currentY += bgH + 3;
 
-    // LAS Section 2: Activity 1 (Foundational Discovery)
     currentY = drawSectionRibbon('II. ACTIVITY 1: FOUNDATIONAL CONCEPT MASTERY', currentY);
-    const a1Text = data.lasA1 || 'Analyze the foundational principles and diagram the key elements of the concept.';
+    const a1Text = data.lasA1 || 'Analyze foundational principles.';
     const a1Lines = doc.splitTextToSize(a1Text, contentWidth - 4);
     const a1H = Math.min(18, Math.max(10, a1Lines.length * 3.6 + 4));
     drawCell(marginX, currentY, contentWidth, a1H, a1Text, false, 7.5);
     currentY += a1H + 3;
 
-    // LAS Section 3: Activity 2 (Deepening & Real-World Application)
     currentY = drawSectionRibbon('III. ACTIVITY 2: DEEPENING & REAL-WORLD APPLICATION', currentY);
-    const a2Text = data.lasA2 || 'Apply the concept to a real-world Philippine community or workplace case study.';
+    const a2Text = data.lasA2 || 'Apply concept to a real-world case.';
     const a2Lines = doc.splitTextToSize(a2Text, contentWidth - 4);
     const a2H = Math.min(18, Math.max(10, a2Lines.length * 3.6 + 4));
     drawCell(marginX, currentY, contentWidth, a2H, a2Text, false, 7.5);
     currentY += a2H + 3;
 
-    // LAS Section 4: Activity 3 (Authentic Performance Task & Scoring Rubric)
     currentY = drawSectionRibbon('IV. ACTIVITY 3: AUTHENTIC PERFORMANCE TASK & SCORING CRITERIA', currentY);
-    const a3Text = data.lasA3 || 'Synthesize findings and create an authentic artifact evaluated via the rubric below.';
+    const a3Text = data.lasA3 || 'Synthesize findings and create an authentic artifact.';
     const a3H = 10;
     drawCell(marginX, currentY, contentWidth, a3H, a3Text, false, 7.5);
     currentY += a3H + 2;
 
-    // Analytic Rubric Table
     const rubricCols = [36, 36.5, 36.5, 36.5, 36.5];
     const rubricRowH = 7.5;
 
-    // Rubric Header
     let rx = marginX;
     const headers = ['Criteria', 'Advancing (4)', 'Benchmarking (3)', 'Connecting (2)', 'Developing (1)'];
     headers.forEach((h, idx) => {
@@ -575,7 +500,6 @@ export function exportDepEdRegionXPDF(
     });
     currentY += 5.5;
 
-    // Rubric Row 1
     rx = marginX;
     drawCell(rx, currentY, rubricCols[0], rubricRowH, 'Content & Accuracy', true, 7, true);
     rx += rubricCols[0];
@@ -588,7 +512,6 @@ export function exportDepEdRegionXPDF(
     drawCell(rx, currentY, rubricCols[4], rubricRowH, 'Needs targeted remediation', false, 6.8);
     currentY += rubricRowH;
 
-    // Rubric Row 2
     rx = marginX;
     drawCell(rx, currentY, rubricCols[0], rubricRowH, 'Application & Rigor', true, 7, true);
     rx += rubricCols[0];
@@ -601,7 +524,6 @@ export function exportDepEdRegionXPDF(
     drawCell(rx, currentY, rubricCols[4], rubricRowH, 'Incomplete task output', false, 6.8);
     currentY += rubricRowH + 3;
 
-    // Student Pledge & Signature Box
     doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
     doc.rect(marginX, currentY, contentWidth, 12, 'D');
     doc.setFont('helvetica', 'italic');
@@ -616,15 +538,186 @@ export function exportDepEdRegionXPDF(
     doc.text('Learner Signature: ____________________________________', marginX + 3, currentY + 9.5);
     doc.text('Parent / Guardian Signature: ____________________________________', marginX + 96, currentY + 9.5);
 
-    const lasPageIndex = mode === 'full' ? 3 : 1;
-    drawOfficialFooter(lasPageIndex, totalPages);
+    drawOfficialFooter(3);
   }
+}
 
-  // Generate File Name
+export function exportDepEdRegionXPDF(
+  data: DepEdILAWExportData,
+  mode: PDFExportMode = 'full'
+): void {
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
+  });
+
+  renderLessonPlan(doc, data, mode, true);
+
   const cleanSubject = (data.subject || 'Subject').replace(/[^a-zA-Z0-9]/g, '_');
   const cleanWeek = (data.week || 'Week').replace(/[^a-zA-Z0-9]/g, '_');
   const fileName = `DepEd_RegionX_ILAW_${cleanSubject}_Term${data.term}_${cleanWeek}_SY2026-2027.pdf`;
-
-  // Trigger download
   doc.save(fileName);
 }
+
+export function exportBatchDepEdRegionXPDF(
+  items: DepEdILAWExportData[],
+  batchTitle: string = 'Consolidated Instructional Learning Activities & Plans (ILAW)'
+): void {
+  if (!items || items.length === 0) return;
+
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+    compress: true
+  });
+
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const marginX = 14;
+  const contentWidth = pageWidth - marginX * 2;
+  const DEPED_BLUE = { r: 0, g: 56, b: 168 };
+  const DEPED_NAVY = { r: 0, g: 39, b: 118 };
+  const DEPED_GOLD = { r: 252, g: 209, b: 22 };
+  const LIGHT_GRAY = { r: 243, g: 244, b: 246 };
+  const BORDER_GRAY = { r: 160, g: 160, b: 160 };
+  const DARK_TEXT = { r: 20, g: 20, b: 20 };
+
+  const sample = items[0];
+
+  const drawCoverFooter = () => {
+    const y = pageHeight - 10;
+    doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
+    doc.setLineWidth(0.3);
+    doc.line(marginX, y, marginX + contentWidth, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Document Code: DEPED-ROX-BATCH-ILAW-2026 | Verified Official Consolidated Record', marginX, y + 4);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Cover Page', marginX + contentWidth, y + 4, { align: 'right' });
+  };
+
+  // --- COVER PAGE ---
+  doc.setFillColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+  doc.rect(marginX, 10, contentWidth, 3, 'F');
+  doc.setFillColor(DEPED_GOLD.r, DEPED_GOLD.g, DEPED_GOLD.b);
+  doc.rect(marginX, 13, contentWidth, 1.2, 'F');
+
+  let y = 22;
+  doc.setFont('times', 'bold');
+  doc.setFontSize(9);
+  doc.setTextColor(80, 80, 80);
+  doc.text('REPUBLIC OF THE PHILIPPINES', pageWidth / 2, y, { align: 'center' });
+
+  y += 5;
+  doc.setFontSize(13);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('DEPARTMENT OF EDUCATION', pageWidth / 2, y, { align: 'center' });
+
+  y += 5;
+  doc.setFontSize(9);
+  doc.setTextColor(60, 60, 60);
+  doc.text(`${(sample.region || 'REGION X - NORTHERN MINDANAO').toUpperCase()} • ${(sample.division || 'DIVISION OF LANAO DEL NORTE').toUpperCase()}`, pageWidth / 2, y, { align: 'center' });
+
+  y += 5;
+  doc.setFontSize(11);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text((sample.school || 'LANAO DEL NORTE NATIONAL COMPREHENSIVE HIGH SCHOOL').toUpperCase(), pageWidth / 2, y, { align: 'center' });
+
+  y += 4;
+  doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
+  doc.setLineWidth(0.4);
+  doc.line(marginX, y, marginX + contentWidth, y);
+
+  y += 5;
+  doc.setFillColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.rect(marginX, y, contentWidth, 12, 'F');
+  doc.setFont('times', 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text(batchTitle.toUpperCase(), pageWidth / 2, y + 7.5, { align: 'center' });
+
+  y += 16;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(90, 90, 90);
+  doc.text('Three-Term Calendar (DepEd Order No. 009, s. 2026) | Strengthened SHS Curriculum (DO No. 015, s. 2026)', pageWidth / 2, y, { align: 'center' });
+
+  y += 8;
+  doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+  doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
+  doc.rect(marginX, y, contentWidth, 22, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8.5);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('BATCH EXPORT SUMMARY & METADATA', marginX + 4, y + 5);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+  doc.text(`Total Lesson Plans in Batch: ${items.length} Modules`, marginX + 4, y + 11);
+  doc.text(`Subject Area: ${sample.subject}`, marginX + 90, y + 11);
+  doc.text(`Prepared By: ${sample.teacher || 'STEAVEN KINTH D. BOISER'}`, marginX + 4, y + 17);
+  doc.text(`School Year: 2026–2027 (Trimester System)`, marginX + 90, y + 17);
+
+  y += 27;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(9.5);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('Table of Contents: Exported Lesson Plans & Modules', marginX, y);
+  y += 4;
+
+  const cols = [12, 35, 18, 25, 62, 30];
+  const headers = ['No.', 'Subject / Topic', 'Term', 'Week', 'Core Competency', 'Code'];
+  let rx = marginX;
+  headers.forEach((h, idx) => {
+    doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+    doc.rect(rx, y, cols[idx], 6, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.text(h, rx + 2, y + 4);
+    rx += cols[idx];
+  });
+  y += 6;
+
+  items.forEach((item, idx) => {
+    if (y > 275) {
+      doc.addPage();
+      y = 20;
+    }
+    rx = marginX;
+    const rowH = 8;
+    const rowData = [
+      String(idx + 1),
+      item.subject,
+      `Term ${item.term}`,
+      item.week,
+      item.learningCompetency.substring(0, 45) + '...',
+      item.code
+    ];
+    rowData.forEach((val, cIdx) => {
+      doc.rect(rx, y, cols[cIdx], rowH, 'D');
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+      doc.text(val.substring(0, cIdx === 4 ? 40 : 25), rx + 1.5, y + 5);
+      rx += cols[cIdx];
+    });
+    y += rowH;
+  });
+
+  drawCoverFooter();
+
+  // Render each lesson plan starting on a new page
+  items.forEach((item) => {
+    renderLessonPlan(doc, item, 'full', false);
+  });
+
+  doc.save(`DepEd_RegionX_Batch_Consolidated_ILAW_${items.length}_Modules_2026.pdf`);
+}
+

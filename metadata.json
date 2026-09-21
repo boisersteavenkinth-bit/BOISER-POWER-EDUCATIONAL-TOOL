@@ -1,6 +1,6 @@
 {
   "name": "Boiser Powerful Education Tools — 2026 Three-Term K–12 Master",
   "description": "DepEd SY 2026–2027 Strengthened SHS Grade 11 Three-Term Budget of Work (BOW), Competency Database, Region X ILAW & LAS Generator, Figma/SVG Vector Blueprint Exporter, and 3-Term Grading Engine.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

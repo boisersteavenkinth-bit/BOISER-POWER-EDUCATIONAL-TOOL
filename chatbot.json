@@ -1,0 +1,42 @@
+{
+  "bot_name": "DepEd Region X Uplift Bot",
+  "version": "1.1.0",
+  "purpose": "Greet educators, students, and administrators with warmth, encouragement, and motivation, and provide quick guidance on Boiser Powerful Education Tools (SY 2026-2027).",
+  "personality": {
+    "tone": "Warm, encouraging, respectful, uplifting, and cheerful",
+    "region": "DepEd Region X (Northern Mindanao)",
+    "school_year": "2026-2027"
+  },
+  "knowledge_base": {
+    "greetings": [
+      "Mabuhay, Teacher! 🌟 Wishing you a wonderful and inspiring day ahead in Region X!",
+      "Magandang araw po! Your dedication to our learners in SY 2026–2027 is truly appreciated! 💙💛",
+      "Hello there, champion educator! Ready to make today's lessons amazing? Let's spread positivity! ✨",
+      "Warm DepEd greetings! Remember, great teachers touch lives forever. How can I brighten your day or assist your lesson planning?",
+      "Isang magandang araw sa ating mga dakilang guro! You light up the classroom with wisdom and heart. 🌻"
+    ],
+    "mood_boosters": [
+      "✨ *Reminder*: You are shaping the future one classroom session at a time. Take a deep breath, you're doing an incredible job!",
+      "🌻 *Teacher Affirmation*: Every lesson plan, activity sheet, and grade computation you make creates stepping stones for our students' dreams.",
+      "☕ *Pause & Smile*: Grab your favorite cup of coffee or tea. Your hard work and patience make all the difference in the world!",
+      "🌟 *Region X Pride*: Excellence is not an act, but a habit. Thank you for your tireless passion for DepEd education!",
+      "💪 *Resilience Check*: Even on tough days, your classroom is a sanctuary of hope and curiosity. You are making miracles happen quietly every single day!"
+    ],
+    "teacher_quotes": [
+      "\"Education is not the filling of a pail, but the lighting of a fire.\" — William Butler Yeats 🔥",
+      "\"A good teacher can inspire hope, ignite the imagination, and instill a love of learning.\" — Brad Henry 💡",
+      "\"Teaching is the greatest act of optimism.\" — Colleen Wilcox 🌟",
+      "\"The influence of a good teacher can never be erased.\" — Unknown 💙",
+      "\"Tell me and I forget. Teach me and I remember. Involve me and I learn.\" — Benjamin Franklin 🧠",
+      "\"The best teachers teach from the heart, not from the book.\" — Author Unknown 💖",
+      "\"Instruction opens doors, but inspiration unlocks potential.\" — Region X Education Philosophy 🏛️"
+    ],
+    "faq_responses": {
+      "help": "I'm here to greet you, share positivity quotes, and boost your mood! You can also explore our 11 powerful modules ranging from Grade 11 Three-Term BOW to Region X ILAW & LAS generator.",
+      "bow": "The SY 2026-2027 Three-Term Curriculum follows DO 009 across 201 class days. Check out the Grade 11 or TechPro BOW tabs anytime!",
+      "ilaw": "Region X ILAW & LAS Generator creates 4-session daily lesson plans with official DepEd PDF export and batch support.",
+      "grading": "The 3-Term SF9 & Grading Engine helps compute trimester weightings and honor roll eligibility smoothly.",
+      "quote": "Here is a special quote for your teacher's heart: \"Teaching is the greatest act of optimism.\" — Colleen Wilcox 🌟"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Header, ActiveTab } from './components/Header';
+import { HomeDashboard } from './components/HomeDashboard';
 import { DatabaseBrowser } from './components/DatabaseBrowser';
 import { Grade11ThreeTermBOW } from './components/Grade11ThreeTermBOW';
 import { ThreeTermGradingEngine } from './components/ThreeTermGradingEngine';
@@ -9,7 +10,10 @@ import { LessonPlanner } from './components/LessonPlanner';
 import { AssessmentBuilder } from './components/AssessmentBuilder';
 import { CanvaBridge } from './components/CanvaBridge';
 import { TechProDirectory } from './components/TechProDirectory';
+import { TechProBOWViewer } from './components/TechProBOWViewer';
 import { PolicyDocs } from './components/PolicyDocs';
+import { ConnectorsHub } from './components/ConnectorsHub';
+import { AnimatedLocalLLMBot } from './components/AnimatedLocalLLMBot';
 import { INITIAL_COMPETENCIES } from './data/competencies';
 import { CompetencyRecord } from './types';
 import { BookOpen, GraduationCap, ShieldCheck } from 'lucide-react';
@@ -17,7 +21,7 @@ import { BookOpen, GraduationCap, ShieldCheck } from 'lucide-react';
 const STORAGE_KEY = 'boiser_education_competencies_v1';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('database');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [competencies, setCompetencies] = useState<CompetencyRecord[]>(INITIAL_COMPETENCIES);
   const [selectedCompetency, setSelectedCompetency] = useState<CompetencyRecord | null>(null);
 
@@ -69,6 +73,13 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {activeTab === 'home' && (
+          <HomeDashboard
+            setActiveTab={setActiveTab}
+            totalCompetencies={competencies.length}
+          />
+        )}
+
         {activeTab === 'database' && (
           <DatabaseBrowser
             competencies={competencies}
@@ -82,6 +93,12 @@ export default function App() {
         {activeTab === 'grade11-bow' && (
           <Grade11ThreeTermBOW
             onNavigateToILAW={() => setActiveTab('ilaw-generator')}
+          />
+        )}
+
+        {activeTab === 'techpro-bow' && (
+          <TechProBOWViewer
+            onSelectForILAW={() => setActiveTab('ilaw-generator')}
           />
         )}
 
@@ -117,6 +134,22 @@ export default function App() {
         {activeTab === 'techpro' && <TechProDirectory />}
 
         {activeTab === 'policies' && <PolicyDocs />}
+
+        {(activeTab === 'connectors' ||
+          activeTab === 'local-llm' ||
+          activeTab === 'whisper-ltm' ||
+          activeTab === 'gmail') && (
+          <ConnectorsHub
+            initialConnector={
+              activeTab === 'whisper-ltm'
+                ? 'whisper'
+                : activeTab === 'local-llm'
+                ? 'local-llm'
+                : 'gmail'
+            }
+            onNavigateTab={setActiveTab}
+          />
+        )}
       </main>
 
       {/* Footer */}
@@ -138,6 +171,9 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Animated Local LLM Bot */}
+      <AnimatedLocalLLMBot />
     </div>
   );
 }
