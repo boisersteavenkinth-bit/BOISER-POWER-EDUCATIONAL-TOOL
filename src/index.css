@@ -91,3 +91,84 @@
   font-style: italic;
   margin: 0.75rem 0;
 }
+
+/* 🖨️ PRINT MEDIA QUERY - Optimized for DepEd ILAW A4 Portrait */
+@media print {
+  /* 1. Hide non-essential UI elements */
+  header,
+  nav,
+  footer,
+  button,
+  .sticky,
+  .no-print,
+  [role="alert"],
+  .alert-container,
+  input[type="checkbox"],
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    display: none !important;
+  }
+
+  /* 2. Reset Layout Constraints for Full Width A4 */
+  body, 
+  #root, 
+  main, 
+  .min-h-screen,
+  .max-w-7xl,
+  .max-w-5xl,
+  .max-w-4xl,
+  .mx-auto {
+    background: white !important;
+    color: black !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: auto !important;
+    display: block !important;
+    box-shadow: none !important;
+  }
+
+  /* 3. Document Specific Formatting */
+  .bg-white, 
+  .bg-stone-50, 
+  .bg-stone-100, 
+  .bg-blue-50 {
+    background-color: transparent !important;
+  }
+
+  /* Ensure tables and borders are visible but clean */
+  .border, 
+  .border-t, 
+  .border-b, 
+  .border-l, 
+  .border-r,
+  .border-2 {
+    border-color: #000 !important;
+  }
+
+  /* 4. Page Configuration */
+  @page {
+    size: A4 portrait;
+    margin: 1cm;
+  }
+
+  /* 5. Force text colors for readability */
+  .text-blue-900, 
+  .text-blue-700, 
+  .text-[#002776] {
+    color: #000 !important;
+  }
+
+  /* Avoid breaking inside tables */
+  tr, td, th {
+    page-break-inside: avoid !important;
+  }
+
+  h1, h2, h3, h4 {
+    page-break-after: avoid !important;
+  }
+}

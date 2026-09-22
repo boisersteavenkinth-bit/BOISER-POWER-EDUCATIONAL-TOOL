@@ -1,11 +1,12 @@
 {
-  "projectId": "gen-lang-client-0551751795",
-  "appId": "1:3865715628:web:91de70072c9e4617ea5009",
-  "apiKey": "AIzaSyAcLQ2ArwUCgmvu9uNrZPAzaazAEjzOAww",
-  "authDomain": "gen-lang-client-0551751795.firebaseapp.com",
-  "storageBucket": "gen-lang-client-0551751795.firebasestorage.app",
-  "messagingSenderId": "3865715628",
+  "projectId": "coherent-clover-mv9wh",
+  "appId": "1:102407372730:web:e5be3eb4182013d1172783",
+  "apiKey": "AIzaSyDhZdqdcd7qsaVxmCKgCQq31gAEfOjR160",
+  "authDomain": "coherent-clover-mv9wh.firebaseapp.com",
+  "firestoreDatabaseId": "ai-studio-boiserpowereduca-226e9ff4-b6d6-4f9e-a655-9b9f1a2cae24",
+  "storageBucket": "coherent-clover-mv9wh.firebasestorage.app",
+  "messagingSenderId": "102407372730",
   "measurementId": "",
-  "oAuthClientId": "3865715628-85fitmfd7ni39q9v6655tn588eeebqfv.apps.googleusercontent.com",
+  "oAuthClientId": "102407372730-gnpe35nt8gojvamt67ovnepo99moicks.apps.googleusercontent.com",
   "recaptchaSiteKey": ""
 }

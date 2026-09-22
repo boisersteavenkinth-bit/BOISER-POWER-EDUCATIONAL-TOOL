@@ -16,9 +16,13 @@ import {
   X,
   Layers,
   Copy,
-  Check
+  Check,
+  ListChecks,
+  Square
 } from 'lucide-react';
 import { CompetencyRecord, KeyStage, TermNumber, VerificationStatus } from '../types';
+import { exportCompetenciesToPdf, exportCompetenciesToDocx } from '../utils/competencyExporter';
+import { parseCompetencyCSV, generateSampleCompetencyCSV } from '../utils/csvImporter';
 
 interface DatabaseBrowserProps {
   competencies: CompetencyRecord[];
@@ -26,6 +30,7 @@ interface DatabaseBrowserProps {
   onSelectForAssessment: (comp: CompetencyRecord) => void;
   onSelectForCanva: (comp: CompetencyRecord) => void;
   onNavigateToGrade11BOW?: () => void;
+  onImportCompetencies?: (records: CompetencyRecord[]) => void;
 }
 
 export const DatabaseBrowser: React.FC<DatabaseBrowserProps> = ({
@@ -34,6 +39,7 @@ export const DatabaseBrowser: React.FC<DatabaseBrowserProps> = ({
   onSelectForAssessment,
   onSelectForCanva,
   onNavigateToGrade11BOW,
+  onImportCompetencies
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedKeyStage, setSelectedKeyStage] = useState<string>('all');
@@ -44,6 +50,108 @@ export const DatabaseBrowser: React.FC<DatabaseBrowserProps> = ({
   const [transitionOnly, setTransitionOnly] = useState<boolean>(false);
   const [activeModalComp, setActiveModalComp] = useState<CompetencyRecord | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const [selectedCompIds, setSelectedCompIds] = useState<Set<string>>(new Set());
+
+  // CSV Import state
+  const [isCsvModalOpen, setIsCsvModalOpen] = useState(false);
+  const [csvParsedRecords, setCsvParsedRecords] = useState<CompetencyRecord[]>([]);
+  const [csvErrorMessages, setCsvErrorMessages] = useState<string[]>([]);
+  const [csvFileName, setCsvFileName] = useState<string>('');
+
+  const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFileName(file.name);
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      if (text) {
+        const result = parseCompetencyCSV(text);
+        if (result.success) {
+          setCsvParsedRecords(result.records);
+          setCsvErrorMessages([]);
+        } else {
+          setCsvParsedRecords([]);
+          setCsvErrorMessages(result.errors);
+        }
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleDownloadSampleCsv = () => {
+    const csvContent = generateSampleCompetencyCSV();
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'deped_competencies_import_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleConfirmCsvImport = () => {
+    if (csvParsedRecords.length === 0) return;
+    if (onImportCompetencies) {
+      onImportCompetencies(csvParsedRecords);
+    }
+    alert(`Successfully imported ${csvParsedRecords.length} new competencies into local storage!`);
+    setIsCsvModalOpen(false);
+    setCsvParsedRecords([]);
+    setCsvFileName('');
+  };
+
+  const toggleSelectComp = (id: string) => {
+    setSelectedCompIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllFiltered = () => {
+    const filteredIds = filtered.map((c) => c.id);
+    const allSelected = filteredIds.length > 0 && filteredIds.every((id) => selectedCompIds.has(id));
+    if (allSelected) {
+      setSelectedCompIds((prev) => {
+        const next = new Set(prev);
+        filteredIds.forEach((id) => next.delete(id));
+        return next;
+      });
+    } else {
+      setSelectedCompIds((prev) => {
+        const next = new Set(prev);
+        filteredIds.forEach((id) => next.add(id));
+        return next;
+      });
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedCompIds(new Set());
+  };
+
+  const selectedCompetenciesList = useMemo(() => {
+    return competencies.filter((c) => selectedCompIds.has(c.id));
+  }, [competencies, selectedCompIds]);
+
+  const handleExportSelectedPdf = () => {
+    if (selectedCompetenciesList.length === 0) return;
+    exportCompetenciesToPdf(selectedCompetenciesList, 'DepEd_2026_Combined_Competencies');
+  };
+
+  const handleExportSelectedDocx = async () => {
+    if (selectedCompetenciesList.length === 0) return;
+    await exportCompetenciesToDocx(selectedCompetenciesList, 'DepEd_2026_Combined_Competencies');
+  };
 
   // Filter logic
   const filtered = useMemo(() => {
@@ -213,18 +321,93 @@ export const DatabaseBrowser: React.FC<DatabaseBrowserProps> = ({
         </div>
       </div>
 
+      {/* Sticky Selection & Combined Export Bar */}
+      {selectedCompIds.size > 0 && (
+        <div className="sticky top-4 z-40 bg-stone-900 text-white p-4 rounded-3xl shadow-xl border border-stone-700/80 flex flex-col sm:flex-row items-center justify-between gap-4 animate-fadeIn">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-blue-600/80 border border-blue-400/40 flex items-center justify-center shrink-0">
+              <CheckSquare className="w-5 h-5 text-amber-300" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm font-display text-white">
+                  {selectedCompIds.size} Competencies Selected
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-200 text-[10px] font-mono border border-blue-400/30">
+                  Combined Document Export
+                </span>
+              </div>
+              <p className="text-xs text-stone-300">
+                Bundle selected items into a single unified DepEd-formatted document.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={handleExportSelectedPdf}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-bold text-xs shadow-md transition cursor-pointer"
+            >
+              <FileText className="w-4 h-4 text-stone-900" />
+              <span>Export Combined PDF</span>
+            </button>
+
+            <button
+              onClick={handleExportSelectedDocx}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition cursor-pointer"
+            >
+              <FileCode className="w-4 h-4 text-blue-200" />
+              <span>Export Combined Word (.docx)</span>
+            </button>
+
+            <button
+              onClick={handleClearSelection}
+              className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-stone-300 text-xs font-semibold transition cursor-pointer"
+            >
+              Clear Selection
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filter Control Console */}
       <div className="bg-white rounded-3xl p-5 border border-stone-200 shadow-xs space-y-4">
-        {/* Search Input */}
-        <div className="relative">
-          <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search learning competency, code, domain, subject (e.g. 'secondary sources scientist', 'payroll', 'interpersonal')..."
-            className="w-full text-sm pl-10 pr-4 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-stone-50/60"
-          />
+        {/* Search Input & Batch Action */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-stone-400 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search learning competency, code, domain, subject (e.g. 'secondary sources scientist', 'payroll', 'interpersonal')..."
+              className="w-full text-sm pl-10 pr-4 py-2.5 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-blue-600 bg-stone-50/60"
+            />
+          </div>
+
+          <button
+            onClick={handleSelectAllFiltered}
+            className={`flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border text-xs font-bold transition shrink-0 cursor-pointer ${
+              filtered.length > 0 && filtered.every((c) => selectedCompIds.has(c.id))
+                ? 'bg-blue-50 text-blue-800 border-blue-300'
+                : 'bg-white text-stone-700 border-stone-300 hover:bg-stone-50'
+            }`}
+          >
+            <ListChecks className="w-4 h-4 text-blue-600" />
+            <span>
+              {filtered.length > 0 && filtered.every((c) => selectedCompIds.has(c.id))
+                ? 'Deselect All Visible'
+                : `Select All Visible (${filtered.length})`}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setIsCsvModalOpen(true)}
+            className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold transition shrink-0 cursor-pointer shadow-xs"
+          >
+            <Download className="w-4 h-4 text-emerald-700 rotate-180" />
+            <span>Bulk Import CSV</span>
+          </button>
         </div>
 
         {/* Dropdown Filters */}
@@ -366,22 +549,42 @@ export const DatabaseBrowser: React.FC<DatabaseBrowserProps> = ({
         {filtered.map((comp) => {
           const isGrade11 = comp.grade_level === 11;
           const isGrade12 = comp.grade_level === 12;
+          const isSelected = selectedCompIds.has(comp.id);
 
           return (
             <div
               key={comp.id}
               className={`bg-white rounded-3xl p-5 border transition flex flex-col justify-between hover:shadow-md ${
-                comp.transition_flag
+                isSelected
+                  ? 'border-blue-600 bg-blue-50/30 ring-2 ring-blue-500/20 shadow-xs'
+                  : comp.transition_flag
                   ? 'border-amber-300/80 bg-amber-50/20'
                   : isGrade11
                   ? 'border-emerald-300/80 bg-emerald-50/15'
                   : 'border-stone-200/90'
               }`}
             >
-              {/* Header Badges */}
+              {/* Header Badges & Checkbox */}
               <div>
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <button
+                      onClick={() => toggleSelectComp(comp.id)}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border text-[11px] font-bold cursor-pointer transition ${
+                        isSelected
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-2xs'
+                          : 'bg-stone-50 hover:bg-stone-100 text-stone-600 border-stone-200'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-0 cursor-pointer pointer-events-none"
+                      />
+                      <span>{isSelected ? 'Selected' : 'Select'}</span>
+                    </button>
+
                     <span className="px-2 py-0.5 rounded-lg bg-stone-100 text-stone-800 text-[10px] font-bold">
                       {comp.grade_level === 'Kindergarten' ? 'Kindergarten' : `Grade ${comp.grade_level}`} ({comp.key_stage})
                     </span>
@@ -569,6 +772,149 @@ export const DatabaseBrowser: React.FC<DatabaseBrowserProps> = ({
               <pre className="p-3 rounded-2xl bg-stone-900 text-stone-200 text-[11px] font-mono overflow-x-auto max-h-48 scrollbar-none">
                 {JSON.stringify(activeModalComp, null, 2)}
               </pre>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSV Bulk Import Modal */}
+      {isCsvModalOpen && (
+        <div className="fixed inset-0 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-stone-200 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-stone-200 pb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold">
+                  CSV
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-stone-900 text-base">Bulk Import Competencies via CSV</h3>
+                  <p className="text-xs text-stone-500">Upload custom learning competencies into local storage</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsCsvModalOpen(false);
+                  setCsvParsedRecords([]);
+                  setCsvFileName('');
+                  setCsvErrorMessages([]);
+                }}
+                className="p-2 rounded-xl text-stone-400 hover:bg-stone-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Template Download Helper */}
+            <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 flex items-center justify-between gap-3">
+              <div className="text-xs text-emerald-900">
+                <p className="font-bold mb-0.5">Need the correct CSV formatting?</p>
+                <p className="text-[11px] text-emerald-700">Download our official DepEd competency template with all required headers.</p>
+              </div>
+              <button
+                onClick={handleDownloadSampleCsv}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold hover:bg-emerald-800 transition cursor-pointer shrink-0 shadow-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Sample Template</span>
+              </button>
+            </div>
+
+            {/* File Upload Box */}
+            <div className="border-2 border-dashed border-stone-300 hover:border-emerald-500 rounded-2xl p-6 text-center bg-stone-50 transition relative">
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleCsvFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <div className="space-y-2 pointer-events-none">
+                <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center">
+                  <Download className="w-6 h-6 rotate-180" />
+                </div>
+                <p className="text-sm font-bold text-stone-800">
+                  {csvFileName ? `Selected File: ${csvFileName}` : 'Click or drop your CSV file here'}
+                </p>
+                <p className="text-xs text-stone-500">
+                  Supports .csv with headers: <code className="bg-stone-200 px-1 py-0.5 rounded text-[10px]">learning_competency</code>, <code className="bg-stone-200 px-1 py-0.5 rounded text-[10px]">grade_level</code>, <code className="bg-stone-200 px-1 py-0.5 rounded text-[10px]">subject_title</code>, etc.
+                </p>
+              </div>
+            </div>
+
+            {/* Parsing Errors */}
+            {csvErrorMessages.length > 0 && (
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-rose-600" />
+                  CSV Parsing Errors:
+                </p>
+                {csvErrorMessages.map((msg, i) => (
+                  <p key={i} className="text-[11px]">• {msg}</p>
+                ))}
+              </div>
+            )}
+
+            {/* Parsed Preview Table */}
+            {csvParsedRecords.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-stone-700">
+                    Parsed Competencies Preview ({csvParsedRecords.length} records ready to import)
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                    Valid CSV Structure
+                  </span>
+                </div>
+
+                <div className="border border-stone-200 rounded-2xl overflow-hidden max-h-52 overflow-y-auto text-xs bg-white">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-stone-100 text-[11px] font-bold text-stone-600 border-b border-stone-200 sticky top-0">
+                      <tr>
+                        <th className="p-2.5">Grade</th>
+                        <th className="p-2.5">Subject</th>
+                        <th className="p-2.5">Competency Statement</th>
+                        <th className="p-2.5">Code</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100 text-[11px]">
+                      {csvParsedRecords.map((r, i) => (
+                        <tr key={i} className="hover:bg-stone-50">
+                          <td className="p-2.5 font-bold text-stone-800">Gr {r.grade_level}</td>
+                          <td className="p-2.5 font-semibold text-blue-800">{r.subject_title}</td>
+                          <td className="p-2.5 text-stone-700">{r.learning_competency}</td>
+                          <td className="p-2.5 font-mono text-stone-500">{r.competency_code || 'N/A'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-stone-200">
+              <button
+                onClick={() => {
+                  setIsCsvModalOpen(false);
+                  setCsvParsedRecords([]);
+                  setCsvFileName('');
+                }}
+                className="px-4 py-2.5 rounded-xl border border-stone-300 text-xs font-bold text-stone-700 hover:bg-stone-100 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                disabled={csvParsedRecords.length === 0}
+                onClick={handleConfirmCsvImport}
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs ${
+                  csvParsedRecords.length > 0
+                    ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                    : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                }`}
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Import {csvParsedRecords.length} Records</span>
+              </button>
             </div>
           </div>
         </div>

@@ -123,6 +123,48 @@ export interface DailyLessonLog {
   };
 }
 
+export interface WeeklyDayPlan {
+  dayName: string; // e.g. "Monday"
+  date: string; // e.g. "Jun 16, 2026"
+  learningObjectives?: string[];
+  objectives?: string[];
+  contentTopic?: string;
+  content?: string;
+  learningResources?: any;
+  references?: string[];
+  otherResources?: string[];
+  procedures?: any;
+  assessment?: string;
+  assignmentEnrichment?: string;
+  assignment?: string;
+  remarks?: string;
+  reflection?: string;
+  [key: string]: any;
+}
+
+export interface WeeklyLessonPlan {
+  id: string;
+  schoolName: string;
+  teacherName: string;
+  gradeLevel: string;
+  subject: string;
+  term: string;
+  quarter?: string;
+  weekNumber: string;
+  inclusiveDates: string;
+  dateRange?: string;
+  schoolYear?: string;
+  topic?: string;
+  competencies?: string;
+  contentStandard: string;
+  performanceStandard: string;
+  learningCompetencies: string;
+  version?: string;
+  validationStatus?: any;
+  days: WeeklyDayPlan[];
+  [key: string]: any;
+}
+
 export interface AssessmentBlueprint {
   id: string;
   title: string;

@@ -1,5 +1,35 @@
 import { jsPDF } from 'jspdf';
 
+let depedLogoBase64 = '';
+let lnnchsLogoBase64 = '';
+
+const loadImageAsBase64 = (url: string): Promise<string> => {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') {
+      resolve('');
+      return;
+    }
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } else {
+        resolve('');
+      }
+    };
+    img.onerror = () => {
+      resolve('');
+    };
+    img.src = url;
+  });
+};
+
 export interface DepEdILAWExportData {
   school: string;
   teacher: string;
@@ -58,6 +88,22 @@ function renderLessonPlan(
     doc.rect(marginX, 8, contentWidth, 2.5, 'F');
     doc.setFillColor(DEPED_GOLD.r, DEPED_GOLD.g, DEPED_GOLD.b);
     doc.rect(marginX, 10.5, contentWidth, 1, 'F');
+
+    // Draw logos if loaded
+    if (depedLogoBase64) {
+      try {
+        doc.addImage(depedLogoBase64, 'PNG', marginX + 1.5, 13.5, 14, 14);
+      } catch (e) {
+        console.error('Failed to draw DepEd logo', e);
+      }
+    }
+    if (lnnchsLogoBase64) {
+      try {
+        doc.addImage(lnnchsLogoBase64, 'PNG', marginX + contentWidth - 15.5, 13.5, 14, 14);
+      } catch (e) {
+        console.error('Failed to draw LNNCHS logo', e);
+      }
+    }
 
     let y = 16;
     doc.setFont('times', 'bold');
@@ -542,10 +588,17 @@ function renderLessonPlan(
   }
 }
 
-export function exportDepEdRegionXPDF(
+export async function exportDepEdRegionXPDF(
   data: DepEdILAWExportData,
   mode: PDFExportMode = 'full'
-): void {
+): Promise<void> {
+  if (!depedLogoBase64) {
+    depedLogoBase64 = await loadImageAsBase64('/deped-logo.png');
+  }
+  if (!lnnchsLogoBase64) {
+    lnnchsLogoBase64 = await loadImageAsBase64('/lnnchs-logo.png');
+  }
+
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -561,11 +614,18 @@ export function exportDepEdRegionXPDF(
   doc.save(fileName);
 }
 
-export function exportBatchDepEdRegionXPDF(
+export async function exportBatchDepEdRegionXPDF(
   items: DepEdILAWExportData[],
   batchTitle: string = 'Consolidated Instructional Learning Activities & Plans (ILAW)'
-): void {
+): Promise<void> {
   if (!items || items.length === 0) return;
+
+  if (!depedLogoBase64) {
+    depedLogoBase64 = await loadImageAsBase64('/deped-logo.png');
+  }
+  if (!lnnchsLogoBase64) {
+    lnnchsLogoBase64 = await loadImageAsBase64('/lnnchs-logo.png');
+  }
 
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -719,5 +779,643 @@ export function exportBatchDepEdRegionXPDF(
   });
 
   doc.save(`DepEd_RegionX_Batch_Consolidated_ILAW_${items.length}_Modules_2026.pdf`);
+}
+
+/**
+ * High-Fidelity DepEd DO 3, s. 2026 Compliant PDF Exporter
+ * Generates the complete 4-part ILAW (Header, Matrix, LAS, Rubrics, Signatures)
+ */
+export async function exportDO3ILAWToPdf(plan: import('../types/ilawDO3').ILAWCompletePlan, fileName?: string): Promise<void> {
+  if (!depedLogoBase64) {
+    depedLogoBase64 = await loadImageAsBase64('/deped-logo.png');
+  }
+  if (!lnnchsLogoBase64) {
+    lnnchsLogoBase64 = await loadImageAsBase64('/lnnchs-logo.png');
+  }
+
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const marginX = 14;
+  const contentWidth = pageWidth - marginX * 2; // 182mm
+
+  const DEPED_BLUE = { r: 0, g: 56, b: 168 };
+  const DEPED_NAVY = { r: 0, g: 39, b: 118 };
+  const DEPED_GOLD = { r: 252, g: 209, b: 22 };
+  const LIGHT_GRAY = { r: 243, g: 244, b: 246 };
+  const BORDER_GRAY = { r: 160, g: 160, b: 160 };
+  const DARK_TEXT = { r: 20, g: 20, b: 20 };
+
+  const { header, matrix, activitySheets } = plan;
+
+  const drawOfficialHeader = (subtitle: string) => {
+    doc.setFillColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+    doc.rect(marginX, 8, contentWidth, 2.5, 'F');
+    doc.setFillColor(DEPED_GOLD.r, DEPED_GOLD.g, DEPED_GOLD.b);
+    doc.rect(marginX, 10.5, contentWidth, 1, 'F');
+
+    // Draw logos if loaded
+    if (depedLogoBase64) {
+      try {
+        doc.addImage(depedLogoBase64, 'PNG', marginX + 1.5, 13.5, 14, 14);
+      } catch (e) {
+        console.error('Failed to draw DepEd logo', e);
+      }
+    }
+    if (lnnchsLogoBase64) {
+      try {
+        doc.addImage(lnnchsLogoBase64, 'PNG', marginX + contentWidth - 15.5, 13.5, 14, 14);
+      } catch (e) {
+        console.error('Failed to draw LNNCHS logo', e);
+      }
+    }
+
+    let y = 16;
+    doc.setFont('times', 'bold');
+    doc.setFontSize(8.5);
+    doc.setTextColor(70, 70, 70);
+    doc.text('REPUBLIC OF THE PHILIPPINES', pageWidth / 2, y, { align: 'center' });
+
+    y += 4.5;
+    doc.setFontSize(12);
+    doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.text('DEPARTMENT OF EDUCATION', pageWidth / 2, y, { align: 'center' });
+
+    y += 4.2;
+    doc.setFontSize(8.5);
+    doc.setTextColor(50, 50, 50);
+    const regDiv = `${header.region.toUpperCase()} • ${header.division.toUpperCase()}`;
+    doc.text(regDiv, pageWidth / 2, y, { align: 'center' });
+
+    y += 4.5;
+    doc.setFontSize(10.5);
+    doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.text(header.school.toUpperCase(), pageWidth / 2, y, { align: 'center' });
+
+    y += 3;
+    doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
+    doc.setLineWidth(0.4);
+    doc.line(marginX, y, marginX + contentWidth, y);
+
+    y += 2;
+    doc.setFillColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.rect(marginX, y, contentWidth, 6.5, 'F');
+    doc.setFont('times', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text(subtitle, pageWidth / 2, y + 4.5, { align: 'center' });
+
+    return y + 8.5;
+  };
+
+  const drawFooter = (pageNum: number, total: number) => {
+    const y = 288;
+    doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
+    doc.setLineWidth(0.3);
+    doc.line(marginX, y, marginX + contentWidth, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(110, 110, 110);
+    doc.text(
+      `DepEd Order No. 3, s. 2026 Compliant | Teacher ${header.teacher} • ${header.school}`,
+      marginX,
+      y + 3.5
+    );
+    doc.text(`Page ${pageNum} of ${total}`, marginX + contentWidth, y + 3.5, { align: 'right' });
+  };
+
+  // --- PAGE 1: Part 1 Header Information Table & Matrix Standards ---
+  let curY = drawOfficialHeader('INSTRUCTIONAL LEADERSHIP AND ACADEMIC WORKFLOW (ILAW) — PART 1');
+
+  // Subtitle DO references
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Three-Term Calendar (DepEd Order No. 009, s. 2026) | DepEd Order No. 3, s. 2026 Standards', pageWidth / 2, curY, { align: 'center' });
+  curY += 3.5;
+
+  // Header Table
+  const tableRows = [
+    ['Lesson / Topic', header.lesson, 'Learning Area/s', header.learningArea],
+    ['Teacher-Developer', header.teacher, 'School & Division', `${header.school} (${header.division})`],
+    ['Grade & Section', header.gradeLevelAndSection, 'Term & BOW Week', `Term ${header.term} • ${header.bowWeek}`],
+    ['Teaching Dates', header.inclusiveTeachingDates, 'No. of Sessions', `${header.numberOfSessions} Sessions (60 mins each)`]
+  ];
+
+  const colW1 = 30;
+  const colW2 = 61;
+  const colW3 = 30;
+  const colW4 = 61;
+
+  tableRows.forEach(row => {
+    const rowH = 6.5;
+    doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+    doc.rect(marginX, curY, colW1, rowH, 'F');
+    doc.rect(marginX + colW1 + colW2, curY, colW3, rowH, 'F');
+    doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
+    doc.rect(marginX, curY, colW1, rowH, 'D');
+    doc.rect(marginX + colW1, curY, colW2, rowH, 'D');
+    doc.rect(marginX + colW1 + colW2, curY, colW3, rowH, 'D');
+    doc.rect(marginX + colW1 + colW2 + colW3, curY, colW4, rowH, 'D');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    doc.text(row[0], marginX + 1.5, curY + 4.2);
+    doc.setFont('helvetica', 'normal');
+    doc.text(row[1].substring(0, 38), marginX + colW1 + 1.5, curY + 4.2);
+
+    doc.setFont('helvetica', 'bold');
+    doc.text(row[2], marginX + colW1 + colW2 + 1.5, curY + 4.2);
+    doc.setFont('helvetica', 'normal');
+    doc.text(row[3].substring(0, 38), marginX + colW1 + colW2 + colW3 + 1.5, curY + 4.2);
+
+    curY += rowH;
+  });
+
+  // Evaluators row
+  const evalH = 5.5;
+  doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+  doc.rect(marginX, curY, 35, evalH, 'F');
+  doc.rect(marginX, curY, 35, evalH, 'D');
+  doc.rect(marginX + 35, curY, contentWidth - 35, evalH, 'D');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.text('Evaluators / QA Team', marginX + 1.5, curY + 3.8);
+  doc.setFont('helvetica', 'italic');
+  doc.text(`${header.contentEvaluator} | ${header.languageEvaluator}`, marginX + 37, curY + 3.8);
+  curY += evalH;
+
+  // References row
+  const refText = header.references.slice(0, 4).join('; ');
+  const splitRef = doc.splitTextToSize(`References: ${refText}`, contentWidth - 4);
+  const refH = Math.min(10, splitRef.length * 3.2 + 2);
+  doc.rect(marginX, curY, contentWidth, refH, 'D');
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6);
+  doc.setTextColor(80, 80, 80);
+  doc.text(splitRef.slice(0, 3), marginX + 2, curY + 3);
+  curY += refH;
+
+  // Declaration of AI Use
+  const aiText = doc.splitTextToSize(`Declaration of AI Use (DO 3, s. 2026 Annex A): ${header.declarationOfAIUse}`, contentWidth - 4);
+  const aiH = Math.min(9, aiText.length * 3 + 2);
+  doc.setFillColor(248, 250, 252);
+  doc.rect(marginX, curY, contentWidth, aiH, 'FD');
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(5.8);
+  doc.setTextColor(90, 90, 90);
+  doc.text(aiText.slice(0, 2), marginX + 2, curY + 3);
+  curY += aiH + 2;
+
+  // Section Banner: PART 2 THE LESSON PLAN MATRIX
+  doc.setFillColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+  doc.rect(marginX, curY, contentWidth, 5, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(255, 255, 255);
+  doc.text('PART 2: THE LESSON PLAN MATRIX (DO 3, s. 2026)', marginX + 3, curY + 3.6);
+  curY += 6.5;
+
+  // 1. Intentions
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('1. INTENTIONS', marginX, curY);
+  curY += 3.2;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.8);
+  doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+  const splitIntent = doc.splitTextToSize(matrix.intentions, contentWidth);
+  doc.text(splitIntent.slice(0, 4), marginX, curY);
+  curY += splitIntent.slice(0, 4).length * 3.2 + 2;
+
+  // 2. Learning Competency
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('2. LEARNING COMPETENCY & STANDARDS', marginX, curY);
+  curY += 3.2;
+
+  const compBoxH = 20;
+  doc.rect(marginX, curY, contentWidth, compBoxH, 'D');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.text('Learning Competency (MELC):', marginX + 2, curY + 3.8);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  const splitMelc = doc.splitTextToSize(matrix.competency.melc, contentWidth - 45);
+  doc.text(splitMelc.slice(0, 2), marginX + 42, curY + 3.8);
+
+  doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Content Topic:', marginX + 2, curY + 9);
+  doc.setFont('helvetica', 'normal');
+  doc.text(matrix.competency.content.substring(0, 90), marginX + 24, curY + 9);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Content Standard:', marginX + 2, curY + 13.5);
+  doc.setFont('helvetica', 'normal');
+  doc.text(matrix.competency.contentStandard.substring(0, 100), marginX + 28, curY + 13.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.text('Performance Std:', marginX + 2, curY + 18);
+  doc.setFont('helvetica', 'normal');
+  doc.text(matrix.competency.performanceStandard.substring(0, 100), marginX + 28, curY + 18);
+
+  curY += compBoxH + 3;
+
+  // 3. Learning Objectives (4 sessions)
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('3. LEARNING OBJECTIVES (PER SESSION)', marginX, curY);
+  curY += 3.2;
+
+  const objColW = contentWidth / matrix.objectives.length;
+  const objBoxH = 32;
+
+  matrix.objectives.forEach((obj, i) => {
+    const ox = marginX + i * objColW;
+    doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+    doc.rect(ox, curY, objColW, 5, 'F');
+    doc.rect(ox, curY, objColW, 5, 'D');
+    doc.rect(ox, curY + 5, objColW, objBoxH - 5, 'D');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.text(`Session ${obj.sessionNumber} (${obj.sessionDate.substring(0, 7)})`, ox + 1.5, curY + 3.6);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.8);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    let oy = curY + 8;
+    obj.objectives.forEach(item => {
+      const splitItem = doc.splitTextToSize(`• ${item}`, objColW - 3);
+      doc.text(splitItem.slice(0, 3), ox + 1.5, oy);
+      oy += splitItem.slice(0, 3).length * 2.8 + 1;
+    });
+  });
+
+  curY += objBoxH + 3;
+
+  // 4. Learner Context
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('4. LEARNER CONTEXT', marginX, curY);
+  curY += 3;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+  const splitCtx = doc.splitTextToSize(matrix.learnerContext, contentWidth);
+  doc.text(splitCtx.slice(0, 3), marginX, curY);
+
+  drawFooter(1, 2 + activitySheets.length);
+
+  // --- PAGE 2: Learning Experience Table, Assessment, Ways Forward & Signatures ---
+  doc.addPage();
+  curY = drawOfficialHeader('INSTRUCTIONAL LEADERSHIP AND ACADEMIC WORKFLOW (ILAW) — PART 2');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('5. LEARNING EXPERIENCE TABLE (SESSIONS 1–4)', marginX, curY);
+  curY += 3.5;
+
+  // Table of 4 sessions
+  const expColW = contentWidth / matrix.learningExperience.length;
+  const expTableH = 75;
+
+  matrix.learningExperience.forEach((exp, i) => {
+    const ex = marginX + i * expColW;
+
+    // Header
+    doc.setFillColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.rect(ex, curY, expColW, 5.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(255, 255, 255);
+    doc.text(`SESSION ${exp.sessionNumber}`, ex + 2, curY + 3.8);
+
+    doc.setDrawColor(BORDER_GRAY.r, BORDER_GRAY.g, BORDER_GRAY.b);
+    doc.rect(ex, curY + 5.5, expColW, expTableH, 'D');
+
+    let ey = curY + 9;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+    doc.text(`Pre-Lesson: Engage (${exp.preLesson.engage.time})`, ex + 1.5, ey);
+    ey += 2.8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    const engText = doc.splitTextToSize(exp.preLesson.engage.activity, expColW - 3);
+    doc.text(engText.slice(0, 3), ex + 1.5, ey);
+    ey += engText.slice(0, 3).length * 2.5 + 1.5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+    doc.text(`Pre-Lesson: Elicit (${exp.preLesson.elicit.time})`, ex + 1.5, ey);
+    ey += 2.8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    const elText = doc.splitTextToSize(exp.preLesson.elicit.activity, expColW - 3);
+    doc.text(elText.slice(0, 3), ex + 1.5, ey);
+    ey += elText.slice(0, 3).length * 2.5 + 1.5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+    doc.text(`Flow: Explore (${exp.flow.explore.time})`, ex + 1.5, ey);
+    ey += 2.8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    const expText = doc.splitTextToSize(
+      `Group: ${exp.flow.explore.groupActivity.title}\nIndividual: ${exp.flow.explore.individualOutput.title}`,
+      expColW - 3
+    );
+    doc.text(expText.slice(0, 4), ex + 1.5, ey);
+    ey += expText.slice(0, 4).length * 2.5 + 1.5;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+    doc.text(`Flow: Explain (${exp.flow.explain.time})`, ex + 1.5, ey);
+    ey += 2.8;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    const synQ = doc.splitTextToSize(exp.flow.explain.synthesisQuestions[0] || 'Synthesis discussion', expColW - 3);
+    doc.text(synQ.slice(0, 3), ex + 1.5, ey);
+  });
+
+  curY += expTableH + 9;
+
+  // 6. Assessment
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('6. ASSESSMENT (FORMATIVE ASSESSMENT MATRIX)', marginX, curY);
+  curY += 3.5;
+
+  const assTableH = 24;
+  matrix.assessment.forEach((ass, i) => {
+    const ax = marginX + i * expColW;
+    doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+    doc.rect(ax, curY, expColW, 4.5, 'F');
+    doc.rect(ax, curY, expColW, 4.5, 'D');
+    doc.rect(ax, curY + 4.5, expColW, assTableH - 4.5, 'D');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.text(`Formative Task ${ass.sessionNumber}`, ax + 1.5, curY + 3.2);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    const splitTask = doc.splitTextToSize(ass.formativeTask, expColW - 3);
+    doc.text(splitTask.slice(0, 5), ax + 1.5, curY + 7.5);
+  });
+
+  curY += assTableH + 3;
+
+  // 7. Ways Forward
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('7. WAYS FORWARD (EXTENDED LEARNING & REFLECTIONS)', marginX, curY);
+  curY += 3.2;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.2);
+  doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+  const eloLine = matrix.waysForward.extendedLearningOpportunities.slice(0, 3).map(e => `• ${e}`).join('  ');
+  const splitElo = doc.splitTextToSize(eloLine, contentWidth);
+  doc.text(splitElo.slice(0, 2), marginX, curY);
+  curY += splitElo.slice(0, 2).length * 2.8 + 3;
+
+  // Signatures Table
+  const sigW = contentWidth / 3;
+  const sigH = 22;
+  doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+  doc.rect(marginX, curY, contentWidth, 4.5, 'F');
+  doc.rect(marginX, curY, contentWidth, 4.5, 'D');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.5);
+  doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+  doc.text('PREPARED BY (TEACHER)', marginX + 3, curY + 3.2);
+  doc.text('CHECKED BY (HEAD TEACHER)', marginX + sigW + 3, curY + 3.2);
+  doc.text('NOTED BY (SCHOOL HEAD)', marginX + sigW * 2 + 3, curY + 3.2);
+
+  doc.rect(marginX, curY + 4.5, sigW, sigH - 4.5, 'D');
+  doc.rect(marginX + sigW, curY + 4.5, sigW, sigH - 4.5, 'D');
+  doc.rect(marginX + sigW * 2, curY + 4.5, sigW, sigH - 4.5, 'D');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+  doc.text(header.teacher.toUpperCase(), marginX + 3, curY + 14);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(5.8);
+  doc.text('Special Science Teacher II / Subject Teacher', marginX + 3, curY + 17.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.text('MASTER TEACHER / HEAD TEACHER', marginX + sigW + 3, curY + 14);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(5.8);
+  doc.text('Department Head, SHS Curriculum', marginX + sigW + 3, curY + 17.5);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.text('SECONDARY SCHOOL PRINCIPAL IV', marginX + sigW * 2 + 3, curY + 14);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(5.8);
+  doc.text('School Head / LNNCHS', marginX + sigW * 2 + 3, curY + 17.5);
+
+  drawFooter(2, 2 + activitySheets.length);
+
+  // --- PAGES 3+: Learning Activity Sheets (One Page per Session!) ---
+  activitySheets.forEach((sheet, idx) => {
+    doc.addPage();
+    curY = drawOfficialHeader(`LEARNING ACTIVITY SHEET (LAS) — SESSION ${sheet.sessionNumber}`);
+
+    // LAS Student meta bar
+    doc.rect(marginX, curY, contentWidth, 10, 'D');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text('Name of Learner: _________________________________________', marginX + 3, curY + 4);
+    doc.text(`Grade & Section: ${header.gradeLevelAndSection}`, marginX + 95, curY + 4);
+    doc.text(`Learning Area: ${header.learningArea}`, marginX + 3, curY + 8);
+    doc.text(`Date: ${sheet.sessionDate}`, marginX + 95, curY + 8);
+    curY += 13;
+
+    // Activity Title
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.text(sheet.activityTitle, marginX, curY);
+    curY += 4.5;
+
+    // Objectives
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    doc.text('Learning Objectives:', marginX, curY);
+    curY += 3;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    sheet.objectives.forEach(obj => {
+      doc.text(`• ${obj}`, marginX + 3, curY);
+      curY += 3;
+    });
+    curY += 1.5;
+
+    // Instructions
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Instruction: `, marginX, curY);
+    doc.setFont('helvetica', 'normal');
+    const splitInst = doc.splitTextToSize(sheet.instruction, contentWidth - 20);
+    doc.text(splitInst, marginX + 18, curY);
+    curY += splitInst.length * 3 + 2;
+
+    // Part A Group Activity
+    doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+    doc.rect(marginX, curY, contentWidth, 5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+    doc.text(sheet.partAGroup.title, marginX + 2, curY + 3.6);
+    curY += 7;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    const splitPromptA = doc.splitTextToSize(sheet.partAGroup.scenarioOrPrompt, contentWidth);
+    doc.text(splitPromptA, marginX, curY);
+    curY += splitPromptA.length * 3 + 2;
+
+    // Table data if present
+    if (sheet.partAGroup.tableData) {
+      const { headers, rows } = sheet.partAGroup.tableData;
+      const thW = contentWidth / headers.length;
+      doc.setFillColor(235, 240, 248);
+      doc.rect(marginX, curY, contentWidth, 4.5, 'F');
+      headers.forEach((h, hi) => {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(6.2);
+        doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+        doc.text(h, marginX + hi * thW + 2, curY + 3.2);
+      });
+      curY += 4.5;
+
+      rows.forEach(r => {
+        const rH = 5.5;
+        doc.rect(marginX, curY, contentWidth, rH, 'D');
+        r.forEach((cell, ci) => {
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(5.8);
+          doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+          doc.text(cell.substring(0, 42), marginX + ci * thW + 2, curY + 3.8);
+        });
+        curY += rH;
+      });
+      curY += 2;
+    }
+
+    // Guiding questions
+    sheet.partAGroup.guidingQuestions.forEach(q => {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(6.2);
+      doc.text(q.substring(0, 110), marginX, curY);
+      curY += 3.5;
+    });
+
+    // Part B Individual Output
+    curY += 2;
+    doc.setFillColor(LIGHT_GRAY.r, LIGHT_GRAY.g, LIGHT_GRAY.b);
+    doc.rect(marginX, curY, contentWidth, 5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7.5);
+    doc.setTextColor(DEPED_BLUE.r, DEPED_BLUE.g, DEPED_BLUE.b);
+    doc.text(sheet.partBIndividual.title, marginX + 2, curY + 3.6);
+    curY += 7;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+    const splitPromptB = doc.splitTextToSize(sheet.partBIndividual.taskPrompt, contentWidth);
+    doc.text(splitPromptB, marginX, curY);
+    curY += splitPromptB.length * 3 + 2;
+
+    sheet.partBIndividual.analysisChallenge.forEach(ac => {
+      doc.setFont('helvetica', 'italic');
+      doc.setFontSize(6.2);
+      doc.text(ac.substring(0, 110), marginX, curY);
+      curY += 3.5;
+    });
+
+    // Answer Key (standalone block)
+    curY += 2;
+    doc.setDrawColor(185, 28, 28);
+    doc.rect(marginX, curY, contentWidth, 12, 'D');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6);
+    doc.setTextColor(185, 28, 28);
+    doc.text('ANSWER KEY — for teacher use, not to be distributed with the worksheet:', marginX + 2, curY + 3.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(80, 80, 80);
+    const akA = sheet.answerKey.partAAnswers[0] ? `Part A: ${sheet.answerKey.partAAnswers[0]}` : '';
+    const akB = sheet.answerKey.partBAnswers[0] ? `Part B: ${sheet.answerKey.partBAnswers[0]}` : '';
+    doc.text(akA.substring(0, 120), marginX + 2, curY + 7);
+    doc.text(akB.substring(0, 120), marginX + 2, curY + 10.5);
+    curY += 14;
+
+    // Analytic Rubric mini-table
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(DEPED_NAVY.r, DEPED_NAVY.g, DEPED_NAVY.b);
+    doc.text('Analytic Rubric (4-Point Mastery Scale):', marginX, curY);
+    curY += 2.5;
+
+    const rubW = [35, 36, 37, 37, 37];
+    doc.setFillColor(241, 245, 249);
+    doc.rect(marginX, curY, contentWidth, 4, 'F');
+    const rHead = ['Criterion', 'Exemplary (4)', 'Proficient (3)', 'Developing (2)', 'Beginning (1)'];
+    let rx = marginX;
+    rHead.forEach((rh, rhi) => {
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(5.8);
+      doc.text(rh, rx + 1.5, curY + 2.8);
+      rx += rubW[rhi];
+    });
+    curY += 4;
+
+    sheet.rubric.criteria.slice(0, 3).forEach(crit => {
+      rx = marginX;
+      doc.rect(marginX, curY, contentWidth, 6.5, 'D');
+      const cells = [crit.criterion, crit.exemplary4, crit.proficient3, crit.developing2, crit.beginning1];
+      cells.forEach((c, ci) => {
+        doc.setFont('helvetica', ci === 0 ? 'bold' : 'normal');
+        doc.setFontSize(5.2);
+        doc.setTextColor(DARK_TEXT.r, DARK_TEXT.g, DARK_TEXT.b);
+        const splitC = doc.splitTextToSize(c, rubW[ci] - 2);
+        doc.text(splitC.slice(0, 2), rx + 1, curY + 2.5);
+        rx += rubW[ci];
+      });
+      curY += 6.5;
+    });
+
+    drawFooter(3 + idx, 2 + activitySheets.length);
+  });
+
+  const actualFileName = fileName || `DepEd_DO3_ILAW_${header.lesson.replace(/[^a-zA-Z0-9]/g, '_')}_${header.teacher.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+  doc.save(actualFileName);
 }
 
