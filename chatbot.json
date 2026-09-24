@@ -1,0 +1,174 @@
+{
+  "bot_name": "DepEd Region X Uplift & Search Bot",
+  "version": "2.1.0",
+  "purpose": "Provide comprehensive curriculum search, official DepEd educational source references, LNNCHS 120-section directory (Grades 7–12, 20 sections each with official advisers), and guidance on the 20-attribute standardized curriculum schema and LNNCHS SF1–SF10 Grading System (SY 2026-2027).",
+  "standard_attributes_schema": [
+    "ID",
+    "School Year",
+    "Grade Level",
+    "Key Stage",
+    "Curriculum",
+    "Track",
+    "Subject Code",
+    "Subject Title",
+    "Term",
+    "Week",
+    "Domain",
+    "Learning Competency",
+    "Competency Code",
+    "Content Standard",
+    "Performance Standard",
+    "Assessment Weight Set",
+    "BOW Source",
+    "CG Source",
+    "Transition Flag",
+    "Verification Status"
+  ],
+  "lnnchs_section_hierarchy": {
+    "structure": "Grade 7 to Grade 12, exactly 20 sections per grade level (120 Sections Total)",
+    "grade_7_sections": [
+      "Aguinaldo (Maria Elena Santos)", "Bonifacio (Ramon Bautista)", "Rizal (Lourdes Dimaporo)", "Mabini (Reynaldo Cruz)",
+      "Luna (Cherry Mae Alcantara)", "Del Pilar (Arnel Fernandez)", "Silang (Aileen Rosales)", "Jacinto (Ferdinand Booc)",
+      "Tandang Sora (Grace Villanueva)", "Burgos (Danilo Ocampo)", "Gomez (Jocelyn Tan)", "Zamora (Noel Macaspac)",
+      "Lapu-Lapu (Rowena Gonzaga)", "Dagohoy (Eduardo Quinto)", "Diego Silang (Maritess Beltran)", "Malvar (Nestor Pascual)",
+      "Sakay (Cristina Lim)", "Quezon (Gil Tolentino)", "Osmeña (Flordeliza Rivera)", "Roxas (Arnold Santiago)"
+    ],
+    "grade_8_sections": [
+      "Diamond (Carmelita Navarro)", "Ruby (Vicente Corpuz)", "Emerald (Sittie Rahma Hadji)", "Sapphire (Mark Lester Manalo)",
+      "Pearl (Evangeline Ignacio)", "Topaz (Dennis Jimenez)", "Amethyst (Glenda Lagman)", "Opal (Jonathan Natividad)",
+      "Garnet (Lilibeth Estrella)", "Jade (Alvin Ferrer)", "Aquamarine (Nenita Gonzales)", "Quartz (Roderick Hernandez)",
+      "Onyx (Rosalinda Valdez)", "Turquoise (Benjamin Alonzo)", "Amber (Shirley Salazar)", "Zircon (Marlon Mercado)",
+      "Jasper (Helen Castillo)", "Beryl (Gregorio Aquino)", "Peridot (Annaliza Ramos)", "Agate (Wilfredo Reyes)"
+    ],
+    "grade_9_sections": [
+      "Einstein (Ken Lugatiman)", "Newton (Priscilla Abella)", "Galileo (Felipe Bacalso)", "Curie (Corazon Cabilogan)",
+      "Tesla (Arthur Español)", "Darwin (Imelda Fuentes)", "Pasteur (Danilo Gomez)", "Archimedes (Noraisa Ibarra)",
+      "Hawking (Romeo Jalosjos)", "Mendel (Leonor Kintanar)", "Faraday (Bong Lomondot)", "Bohr (Fe Nuñez)",
+      "Kepler (Salvador Ortega)", "Copernicus (Virginia Pimentel)", "Franklin (Arman Quirino)", "Edison (Elvira Rosales)",
+      "Bell (Joel Soriano)", "Mendeleev (Zenaida Teodoro)", "Hubble (Manuel Alcala)", "Sagan (Divina Barte)"
+    ],
+    "grade_10_sections": [
+      "Integrity (Jonathan Santos)", "Honesty (Milagros Perez)", "Courage (Alexander Cruz)", "Loyalty (Bernadette Reyes)",
+      "Humility (Cesar Mendoza)", "Wisdom (Delia Garcia)", "Diligence (Eric Ramos)", "Compassion (Felicitas Torres)",
+      "Respect (Geraldine Villanueva)", "Excellence (Homer Alcantara)", "Justice (Irene Bautista)", "Hope (Jasper Corpuz)",
+      "Faith (Katrina Dela Cruz)", "Peace (Leonardo Ferrer)", "Unity (Maricel Hernandez)", "Prudence (Nilo Ignacio)",
+      "Fortitude (Ophelia Jimenez)", "Temperance (Paquito Lagman)", "Gratitude (Querubin Manalo)", "Generosity (Rosario Ocampo)"
+    ],
+    "grade_11_sections": [
+      "STEM 11-A Pythagoras (Engr. Nelson Borres)", "STEM 11-B Euler (Dr. Sheila Marie Datu)", "STEM 11-C Gauss (Wilmer Tangpos)",
+      "ABM 11-A Paccioli (CPA Lourdes Quitoriano)", "ABM 11-B Kotler (Rodolfo Singson)", "HUMSS 11-A Plato (Atty. Victorio Cruz)",
+      "HUMSS 11-B Aristotle (Genevieve Alonto)", "HUMSS 11-C Socrates (Faisal Dimaporo)", "TVL-ICT 11-A Turing (Ken Lugatiman)",
+      "TVL-ICT 11-B Lovelace (Kristine Joy Lim)", "TVL-HE 11-A Escoffier (Chef Bernadette Romero)", "TVL-HE 11-B Robuchon (Chef Michael Ramos)",
+      "TVL-IA 11-A Ford (Engr. Mario Gomez)", "TVL-IA 11-B Tesla (Danilo Tan)", "TVL-AFA 11-A Borlaug (Helen Ruiz)",
+      "TVL-AFA 11-B Carver (Fidel Macalinao)", "GAS 11-A Locke (Rowena Mendoza)", "GAS 11-B Rousseau (Guillermo Pascual)",
+      "Arts & Design 11 Da Vinci (Lea Solon)", "Sports Track 11 Olympus (Coach Bernardo Diaz)"
+    ],
+    "grade_12_sections": [
+      "STEM 12-A Archimedes (Prof. Eduardo Perez)", "STEM 12-B Maxwell (Engr. Jocelyn Torres)", "STEM 12-C Dirac (Dennis Alcantara)",
+      "ABM 12-A Keynes (Prof. Rosita Bautista)", "ABM 12-B Adam Smith (Oscar Mercado)", "HUMSS 12-A Descartes (Dean Alberto Ramos)",
+      "HUMSS 12-B Kant (Victoria Villanueva)", "HUMSS 12-C Hegel (Jumar Dimaporo)", "TVL-ICT 12-A Von Neumann (Ken Lugatiman)",
+      "TVL-ICT 12-B Knuth (Engr. Paolo Santos)", "TVL-HE 12-A Ducasse (Chef Eleanor Corpuz)", "TVL-HE 12-B Keller (Chef Gregorio Salazar)",
+      "TVL-IA 12-A Edison (Engr. Reynaldo Jimenez)", "TVL-IA 12-B Benz (Arnel Cruz)", "TVL-AFA 12-A Swaminathan (Miriam Reyes)",
+      "TVL-AFA 12-B Mendel (Eric Tan)", "GAS 12-A Voltaire (Evelyn Hernandez)", "GAS 12-B Montesquieu (Cesar Garcia)",
+      "Arts & Design 12 Michelangelo (Carlo Santos)", "Sports Track 12 Marathon (Ma'am Kisshia)"
+    ]
+  },
+  "grading_specifications": {
+    "policy": "DepEd Order No. 3, s. 2026 (Grading & Assessment Framework for SY 2026-2027)",
+    "input_sheets": ["Master_Data", "Grades_ECR"],
+    "protection_password": "LNNCHS2026",
+    "honor_roll_rules": {
+      "with_highest_honors": "General Average 98-100, no subject below 93",
+      "with_high_honors": "General Average 95-97, no subject below 90",
+      "with_honors": "General Average 90-94, no subject below 85",
+      "no_failing_grades": "No grade below 75 in any subject"
+    },
+    "sample_cohort": "60 preloaded learners across Grade 3 (Mabini), Grade 8 (Rizal), and Grade 11 (Einstein), plus 600+ consolidated LIS students across all 120 sections"
+  },
+  "official_information_sources": [
+    {
+      "name": "LNNCHS Student Handbook S.Y. 2025-2026 (Official Code of Conduct & Policies)",
+      "url": "304005.ldn@deped.gov.ph",
+      "description": "Comprehensive school policies, uniform guidelines (Maroon JHS / Blue SHS), attendance 20% limit, grading, disciplinary rules, Child Protection, and SSLG Constitution for School ID 304005 (Baroy, Lanao del Norte)."
+    },
+    {
+      "name": "Regional Memorandum No. 604, s. 2025 (RUQA SY 2025-2026)",
+      "url": "https://r10.deped.gov.ph",
+      "description": "DepEd Region X Regional Unified Quarterly Assessment covering Grades 3-10 and Grade 11 core subjects anchored on SOLO Framework & 21st Century Skills."
+    },
+    {
+      "name": "Division Memorandum No. 523, s. 2025 (ECPS Reclassification)",
+      "url": "https://depedldn.com",
+      "description": "Schools Division of Lanao del Norte Call for Applications for Reclassification of Teaching Positions (Teacher II-VII, Master Teacher II-IV) under DO 024, s. 2025."
+    },
+    {
+      "name": "DepEd Order No. 010, s. 2026 (Summer Remediation Programs)",
+      "url": "https://www.deped.gov.ph",
+      "description": "National policy guidelines on ARAL Summer-Reading, ARAL Summer-Math, SHS Remediation, and SARP from May 6 to June 2, 2026 with Recomputed Final Grade (RFG >= 75)."
+    },
+    {
+      "name": "LNNCHS School Memorandum s. 2026 (Sports Coaches & SPS Advisers Meeting)",
+      "url": "304005.ldn@deped.gov.ph",
+      "description": "Orientation and directives for School Sports and SPS Program for SY 2026-2027 by Principal Anisah A. Sinal, Sports Coordinator Norwin F. Palao, and SPS Coordinator Cyril Mark B. Olis."
+    },
+    {
+      "name": "DepEd Annex A: Lesson Planning Rubric & Instructional Coaching Guide",
+      "url": "https://www.deped.gov.ph",
+      "description": "Official 8-dimension rubric for lesson plan quality assurance, inclusivity, integrated assessment, and instructional coaching."
+    },
+    {
+      "name": "DepEd Learning Resource Management and Development System (LRMDS)",
+      "url": "https://lrmds.deped.gov.ph",
+      "description": "Official national portal for quality-assured modules, activity sheets, and curriculum frameworks."
+    },
+    {
+      "name": "DepEd Official Website",
+      "url": "https://www.deped.gov.ph",
+      "description": "Department Orders (DO 3, DO 9, DO 10, DO 15 s. 2026), official issuances, memos, and curriculum guides."
+    },
+    {
+      "name": "DepEd Commons",
+      "url": "https://commons.deped.gov.ph",
+      "description": "Free open-access repository for teachers and learners nationwide."
+    },
+    {
+      "name": "DepEd Learner Information System (LIS)",
+      "url": "https://lis.deped.gov.ph",
+      "description": "Official enrollment and student record system for School Forms (SF1–SF10)."
+    }
+  ],
+  "knowledge_base": {
+    "greetings": [
+      "Mabuhay, Teacher! 🌟 Wishing you a wonderful and inspiring day ahead in Region X!",
+      "Magandang araw po! Your dedication to our learners in SY 2026–2027 is truly appreciated! 💙💛",
+      "Hello there, champion educator! Ready to make today's lessons amazing? Let's search curriculum standards and school forms! ✨",
+      "Warm DepEd greetings! I have complete knowledge of DO 3, s. 2026, the 20-attribute curriculum schema, and LNNCHS SF1–SF10 system. How can I assist you?",
+      "Isang magandang araw sa ating mga dakilang guro! You light up the classroom with wisdom and heart. 🌻"
+    ],
+    "mood_boosters": [
+      "✨ *Reminder*: You are shaping the future one classroom session at a time. Take a deep breath, you're doing an incredible job!",
+      "🌻 *Teacher Affirmation*: Every lesson plan, activity sheet, and grade computation you make creates stepping stones for our students' dreams.",
+      "☕ *Pause & Smile*: Grab your favorite cup of coffee or tea. Your hard work and patience make all the difference in the world!",
+      "🌟 *Region X Pride*: Excellence is not an act, but a habit. Thank you for your tireless passion for DepEd education!",
+      "💪 *Resilience Check*: Even on tough days, your classroom is a sanctuary of hope and curiosity. You are making miracles happen quietly every single day!"
+    ],
+    "teacher_quotes": [
+      "\"Education is not the filling of a pail, but the lighting of a fire.\" — William Butler Yeats 🔥",
+      "\"A good teacher can inspire hope, ignite the imagination, and instill a love of learning.\" — Brad Henry 💡",
+      "\"Teaching is the greatest act of optimism.\" — Colleen Wilcox 🌟",
+      "\"The influence of a good teacher can never be erased.\" — Unknown 💙",
+      "\"Tell me and I forget. Teach me and I remember. Involve me and I learn.\" — Benjamin Franklin 🧠",
+      "\"The best teachers teach from the heart, not from the book.\" — Author Unknown 💖",
+      "\"Instruction opens doors, but inspiration unlocks potential.\" — Region X Education Philosophy 🏛️"
+    ],
+    "faq_responses": {
+      "help": "I'm here to search curriculum competencies across all 20 standardized attributes, guide you through the 120-section LNNCHS directory (Grades 7–12, 20 sections each with advisers), and assist with the 15-sheet LNNCHS SF1–SF10 grading engine!",
+      "sections": "LNNCHS maintains exactly 20 sections per grade from Grade 7 to Grade 12 (120 sections total), each with an assigned Adviser, Room assignment, and LIS-synced roster!",
+      "bow": "The SY 2026-2027 Three-Term Curriculum follows DO 009 across 201 class days. Check out the Grade 11 or TechPro BOW tabs anytime!",
+      "ilaw": "Region X ILAW & LAS Generator creates 4-session daily lesson plans with official DepEd PDF export and batch support.",
+      "grading": "The LNNCHS SF1–SF10 Master System auto-computes 3-term quarter grades with DO 3, s. 2026 Honor Roll rules (90-94 With Honors, 95-97 With High Honors, 98-100 With Highest Honors) and sheet protection password LNNCHS2026.",
+      "schema": "The 20 standardized curriculum attributes are: ID, School Year, Grade Level, Key Stage, Curriculum, Track, Subject Code, Subject Title, Term, Week, Domain, Learning Competency, Competency Code, Content Standard, Performance Standard, Assessment Weight Set, BOW Source, CG Source, Transition Flag, and Verification Status.",
+      "quote": "Here is a special quote for your teacher's heart: \"Teaching is the greatest act of optimism.\" — Colleen Wilcox 🌟"
+    }
+  }
+}

@@ -1,0 +1,313 @@
+import {
+  ScienceRecordMaster,
+  MathRecordMaster,
+  ResearchSourceMaster,
+  ResearchEventTemplate,
+  ClassroomImprovementRecord,
+  InterventionLibraryItem,
+  CurriculumRecordMaster
+} from '../types/masterResearchCurriculum';
+
+export const SEED_CURRICULUM_RECORDS: CurriculumRecordMaster[] = [
+  {
+    curriculum_id: 'CURR-2026-SCI8-001',
+    curriculum_name: 'DepEd Strengthened Science Curriculum 2026',
+    curriculum_version: 'MATATAG_2026',
+    implementation_year: '2026',
+    school_year: '2026-2027',
+    grade_level: 'Grade 8',
+    learning_area: 'General Science',
+    subject: 'Integrated Science 8',
+    domain: 'Force, Motion, and Energy',
+    strand: 'Physics & Energy Flow',
+    competency_code: 'S8FE-Ia-15',
+    competency_text: 'Investigate the relationship between the amount of force applied and the mass of the object to the amount of change in the object’s motion.',
+    content_standard: 'The learners demonstrate an understanding of Newton’s Laws of Motion and work-energy relationships in daily life.',
+    performance_standard: 'The learners develop a written emergency safety plan during road transport collisions using Newton’s laws.',
+    learning_objective: 'Differentiate speed, velocity, and acceleration through ticker-tape diagram analysis.',
+    prerequisite_competency: 'S7FE-IIIa-1 (Describing motion in one dimension)',
+    term: 'Term 1',
+    quarter: 'Q1',
+    source_document: 'DepEd Order No. 015, s. 2026 Curriculum Guide',
+    source_url: 'https://www.deped.gov.ph/curriculum/science-8-2026',
+    source_date: '2026-01-15',
+    verification_status: 'VERIFIED_OFFICIAL',
+    last_verified: '2026-09-01'
+  },
+  {
+    curriculum_id: 'CURR-2026-MATH8-002',
+    curriculum_name: 'DepEd Strengthened Mathematics Curriculum 2026',
+    curriculum_version: 'MATATAG_2026',
+    implementation_year: '2026',
+    school_year: '2026-2027',
+    grade_level: 'Grade 8',
+    learning_area: 'Mathematics',
+    subject: 'Patterns and Algebra 8',
+    domain: 'Patterns and Algebra',
+    strand: 'Algebra',
+    competency_code: 'M8AL-Ie-1',
+    competency_text: 'Illustrate linear equations in two variables and graph them using x- and y-intercepts and slope.',
+    content_standard: 'The learner demonstrates understanding of key concepts of linear equations and linear inequalities in two variables.',
+    performance_standard: 'The learner is able to formulate real-life problems involving linear equations and solve them with accuracy.',
+    learning_objective: 'Find the slope of a line given two points, equation, or graph.',
+    prerequisite_competency: 'M7AL-IIa-1 (Algebraic expressions and rectangular coordinate system)',
+    term: 'Term 1',
+    quarter: 'Q1',
+    source_document: 'DepEd Order No. 015, s. 2026 Mathematics Guide',
+    source_url: 'https://www.deped.gov.ph/curriculum/math-8-2026',
+    source_date: '2026-01-15',
+    verification_status: 'VERIFIED_OFFICIAL',
+    last_verified: '2026-09-01'
+  }
+];
+
+export const SEED_SCIENCE_RECORDS: ScienceRecordMaster[] = [
+  {
+    id: 'SCI-8-01',
+    grade: 'Grade 8',
+    term: 'Term 1',
+    discipline: 'Physics',
+    domain: 'Force, Motion & Energy',
+    topic: 'Laws of Motion',
+    subtopic: 'Newton’s Second Law of Acceleration',
+    competency_code: 'S8FE-Ia-15',
+    competency: 'Investigate the relationship between force, mass, and acceleration through experimental simulation.',
+    scientific_concept: 'Acceleration is directly proportional to net force and inversely proportional to mass (F = ma).',
+    inquiry_skill: 'Formulating hypotheses, controlling variables, and constructing line graphs.',
+    investigation_skill: 'Dynamic cart motion recording with photogate timers.',
+    laboratory_skill: 'Calibration of spring balances and friction-free ramp setup.',
+    hots_level: 'Evaluating/Creating',
+    prerequisite_knowledge: 'Balanced vs. unbalanced forces and vector representation.',
+    misconception: 'Students believe continuous force is required to maintain constant velocity.',
+    intervention: 'Interactive PhET Friction & Force vector simulation with guided inquiry sheets.',
+    assessment_type: 'Formative performance task with rubric & quantitative graph evaluation.',
+    research_connection: 'Dela Cruz & Ramos (2023) - Computer-Assisted Inquiry in Philippine Physics Classrooms.',
+    verification_status: 'VERIFIED_OFFICIAL'
+  },
+  {
+    id: 'SCI-9-02',
+    grade: 'Grade 9',
+    term: 'Term 2',
+    discipline: 'Chemistry',
+    domain: 'Matter and Its Interactions',
+    topic: 'Chemical Bonding',
+    subtopic: 'Ionic vs Covalent Bonds',
+    competency_code: 'S9MT-IIb-14',
+    competency: 'Explain how chemical bonds form in terms of atomic structure and valence electron transfer/sharing.',
+    scientific_concept: 'Electronegativity differences dictate valence electron transfer (ionic) vs octet sharing (covalent).',
+    inquiry_skill: 'Predicting bond types and interpreting Lewis dot structure diagrams.',
+    investigation_skill: 'Electrical conductivity testing of liquid compounds.',
+    laboratory_skill: 'Safe handling of conductivity apparatus and salt/sugar solution preparation.',
+    hots_level: 'Applying/Analyzing',
+    prerequisite_knowledge: 'Periodic table electron configuration and valence electrons.',
+    misconception: 'Students confuse molecular sharing with physical magnetic attraction.',
+    intervention: '3D Molecular Manipulatives & PhET Atom Builder activity.',
+    assessment_type: 'Diagnostic concept test & laboratory conductivity report.',
+    research_connection: 'Santos et al. (2022) - Visualizing Abstract Chemistry Concepts in SHS STEM.',
+    verification_status: 'VERIFIED_OFFICIAL'
+  }
+];
+
+export const SEED_MATH_RECORDS: MathRecordMaster[] = [
+  {
+    id: 'MATH-8-01',
+    grade: 'Grade 8',
+    term: 'Term 1',
+    strand: 'Algebra',
+    domain: 'Patterns and Algebra',
+    topic: 'Linear Equations in Two Variables',
+    subtopic: 'Graphing and Slope Interpretation',
+    competency_code: 'M8AL-Ie-1',
+    competency: 'Illustrate linear equations in two variables and determine slopes from coordinates and graphs.',
+    mathematical_concept: 'Rate of change represented by m = (y2 - y1) / (x2 - x1) on the Cartesian plane.',
+    procedural_skill: 'Calculating slope and substituting values into slope-intercept form (y = mx + b).',
+    problem_solving_skill: 'Translating word problems into linear models and estimating break-even points.',
+    reasoning_skill: 'Justifying whether two lines are parallel or perpendicular based on slope ratios.',
+    hots_level: 'Applying/Analyzing',
+    misconception: 'Confusing slope direction (positive vs negative) when moving left-to-right on axes.',
+    intervention: 'Concrete-Representational-Abstract (CRA) grid boards & GeoGebra dynamic sliders.',
+    assessment: 'Formative problem set with TOS-mapped diagnostic items.',
+    research_connection: 'Flores & Mercado (2024) - CRA Model in Philippine Secondary Algebra Instruction.',
+    verification_status: 'VERIFIED_OFFICIAL'
+  },
+  {
+    id: 'MATH-10-02',
+    grade: 'Grade 10',
+    term: 'Term 3',
+    strand: 'Statistics',
+    domain: 'Statistics and Probability',
+    topic: 'Measures of Position',
+    subtopic: 'Quartiles, Deciles, and Percentiles',
+    competency_code: 'M10SP-IVa-1',
+    competency: 'Calculate and interpret quartiles, deciles, and percentiles of grouped data.',
+    mathematical_concept: 'Cumulative frequency distributions dividing data sets into equal percentage partitions.',
+    procedural_skill: 'Computing lower boundaries and class widths for percentile interpolation formulas.',
+    problem_solving_skill: 'Determining scholarship eligibility cutoffs using percentile ranks.',
+    reasoning_skill: 'Critiquing statistical claims in news reports regarding income distributions.',
+    hots_level: 'Evaluating/Creating',
+    misconception: 'Assuming the 50th percentile is equal to the simple arithmetic mean of raw scores.',
+    intervention: 'Real-world DepEd NAT score distribution data analysis using Excel spreadsheets.',
+    assessment: 'Performance task involving school-level NAT data report generation.',
+    research_connection: 'Bautista (2021) - Data Literacy and Statistical Thinking in Basic Education.',
+    verification_status: 'VERIFIED_OFFICIAL'
+  }
+];
+
+export const SEED_RESEARCH_SOURCES: ResearchSourceMaster[] = [
+  {
+    id: 'RES-2024-001',
+    title: 'Enhancing Science Conceptual Understanding Through PhET Interactive Simulations in Northern Mindanao High Schools',
+    authors: ['Dela Cruz, Juan M.', 'Ramos, Maria L.'],
+    year: 2024,
+    journal: 'Philippine Journal of Science Education',
+    publisher: 'Mindanao State University Press',
+    volume: '12',
+    issue: '2',
+    pages: '45–58',
+    doi: '10.3860/pjse.v12i2.2024',
+    url: 'https://philjournalsci.org/article/view/2024-phet-mindanao',
+    abstract: 'This quasi-experimental study evaluated the effect of PhET interactive simulations on 240 Grade 8 students in Lanao del Norte. Post-test results demonstrated a statistically significant gain (t = 6.42, p < .001) in physics conceptual retention compared to traditional lecture methods.',
+    keywords: ['PhET Simulations', 'Science Education', 'Conceptual Gain', 'Physics', 'Region X'],
+    methodology: 'Quasi-Experimental pre-test/post-test control group design with 240 Grade 8 students.',
+    participants: '240 Grade 8 Science students across 4 public secondary schools in Lanao del Norte.',
+    intervention: '8-week computer-assisted PhET interactive laboratory simulation module.',
+    major_findings: 'Students using PhET simulations achieved a normalized Hake gain of g = 0.62 (medium-to-high gain) vs g = 0.28 in control group.',
+    limitations: 'Limited to public schools with functioning computer laboratories or mobile offline devices.',
+    research_gap: 'Few studies have investigated the long-term retention beyond 6 months in rural Philippine schools.',
+    citation: 'Dela Cruz, J. M., & Ramos, M. L. (2024). Enhancing Science Conceptual Understanding Through PhET Interactive Simulations. Philippine Journal of Science Education, 12(2), 45–58.',
+    publication_type: 'PEER_REVIEWED',
+    country: 'Philippines',
+    education_level: 'Secondary (Junior High School)',
+    grade_level: 'Grade 8',
+    subject: 'General Science / Physics',
+    variables: ['PhET Interactive Simulation', 'Conceptual Understanding', 'Academic Achievement'],
+    source_reliability: 'VERIFIED',
+    verification_status: 'VERIFIED'
+  },
+  {
+    id: 'RES-2023-002',
+    title: 'Concrete-Representational-Abstract (CRA) Instructional Sequence in Secondary Algebra: A Philippine Classroom Action Research',
+    authors: ['Flores, Roberto C.', 'Mercado, Elena P.'],
+    year: 2023,
+    journal: 'Asia-Pacific Journal of Mathematics Education',
+    publisher: 'SEAMEO RECSAM',
+    volume: '8',
+    issue: '1',
+    pages: '112–129',
+    doi: '10.1016/j.apjme.2023.01.004',
+    url: 'https://apjme.seameo.org/vol8/flores-cra-algebra',
+    abstract: 'Action research examining CRA model implementation among 180 Grade 8 algebra learners experiencing difficulty with linear equations. Findings revealed marked reduction in algebraic notation anxiety and a 34% increase in problem-solving accuracy.',
+    keywords: ['CRA Model', 'Algebra', 'Linear Equations', 'Action Research', 'Mathematics'],
+    methodology: 'Action Research utilizing mixed-methods pre/post testing and diagnostic error analysis.',
+    participants: '180 Grade 8 learners in DepEd Division of Lanao del Norte.',
+    intervention: 'Concrete grid manipulatives leading to semi-concrete graphing, followed by abstract equation solving.',
+    major_findings: 'CRA framework bridged conceptual gaps for 82% of struggling algebra students.',
+    limitations: 'Action research scope confined to single school division context.',
+    research_gap: 'Needs replication across senior high school advanced STEM calculus functions.',
+    citation: 'Flores, R. C., & Mercado, E. P. (2023). Concrete-Representational-Abstract Instructional Sequence in Secondary Algebra. Asia-Pacific Journal of Mathematics Education, 8(1), 112–129.',
+    publication_type: 'PEER_REVIEWED',
+    country: 'Philippines',
+    education_level: 'Secondary (Junior High School)',
+    grade_level: 'Grade 8',
+    subject: 'Mathematics',
+    variables: ['CRA Model', 'Algebraic Anxiety', 'Problem Solving Accuracy'],
+    source_reliability: 'VERIFIED',
+    verification_status: 'VERIFIED'
+  }
+];
+
+export const SEED_RESEARCH_TEMPLATES: ResearchEventTemplate[] = [
+  {
+    id: 'TEMPLATE-NSTF-2026',
+    event_name: 'NSTF',
+    event_level: 'National',
+    research_category: 'Life Science / Physical Science / Robotics & Intelligent Machines / Mathematics & Computational Science',
+    year: 2026,
+    organizer: 'DepEd Bureau of Curriculum Development & DOST-SEI',
+    eligibility: 'Grade 7 to 12 enrolled public and private school learners in the Philippines.',
+    required_sections: [
+      'Title Page', 'Abstract (250 words max)', 'Introduction & Rationale', 'Statement of the Problem & Hypotheses',
+      'Significance of the Study', 'Scope & Delimitation', 'Review of Related Literature',
+      'Materials and Methodology', 'Results and Discussion', 'Conclusion and Recommendations',
+      'Literature Cited (APA 7th)', 'Logbook & Risk Assessment Form'
+    ],
+    formatting_rules: 'A4 size, Times New Roman 12pt, Double-spaced, 1-inch margins, max 20 pages excluding preliminary pages.',
+    submission_requirements: 'PDF document, ISEF forms 1, 1A, 1B, 2, 3, 4, 7, and signed Parent Consent Forms.',
+    evaluation_criteria: 'Creative Ability (30%), Scientific Thought/Engineering Goals (30%), Thoroughness (15%), Skill (15%), Clarity (10%).',
+    required_documents: ['ISEF Form 1', 'ISEF Form 1A', 'Research Plan', 'Abstract', 'Endorsement Letter'],
+    deadlines: 'Division (Sept 2026), Regional (Nov 2026), National (Feb 2027)',
+    source_document: 'DepEd Memorandum No. 042, s. 2026 (National Science and Technology Fair Guidelines)'
+  },
+  {
+    id: 'TEMPLATE-RSTF-2026',
+    event_name: 'RSTF',
+    event_level: 'Regional',
+    research_category: 'Science, Technology, Mathematics, and Innovation Fair - Region X',
+    year: 2026,
+    organizer: 'DepEd Region X Northern Mindanao - CLMD',
+    eligibility: 'Official winners from Division Science and Technology Fairs in Region X.',
+    required_sections: [
+      'Official DepEd ROX Cover Page', 'Abstract', 'Chapter 1: The Problem & Background',
+      'Chapter 2: Review of Related Literature & Studies', 'Chapter 3: Methodology',
+      'Chapter 4: Presentation, Analysis, & Interpretation of Data', 'Chapter 5: Summary, Findings, Conclusions, Recommendations',
+      'References & Official Appendices'
+    ],
+    formatting_rules: 'Standard DepEd Region X 1.5 spacing, Arial 11pt, blue accent header headers.',
+    submission_requirements: '3 physical ring-bound copies + PDF digital submission to DepEd ROX CLMD portal.',
+    evaluation_criteria: 'Methodological Rigor (35%), Local Applicability to Region X (25%), Scientific Accuracy (20%), Oral Defense Presentation (20%).',
+    required_documents: ['Division Certification', 'Plagiarism Scan Report (<15%)', 'Data Privacy Consent'],
+    deadlines: 'Submission Deadline: October 15, 2026',
+    source_document: 'DepEd Region X Regional Memorandum No. 118, s. 2026'
+  }
+];
+
+export const SEED_CLASSROOM_RESEARCH: ClassroomImprovementRecord[] = [
+  {
+    id: 'CAR-2026-001',
+    title: 'Improving Science Problem-Solving Skills of Grade 8 Einstein Students Through Retrieval Practice Warm-Ups',
+    research_problem: 'Low pre-test performance in Newton’s Laws calculation items where 65% of learners failed to isolate force and acceleration variables.',
+    baseline_data: 'Diagnostic pre-test mean score: 4.2 / 10 (42% mastery level) among 45 learners.',
+    root_cause_analysis: 'Rote memorization without frequent low-stakes retrieval practice led to formula confusion during physics multi-step calculations.',
+    intervention: 'Daily 5-minute low-stakes retrieval flashcard practice (Retrieval Practice Warm-Ups) before starting main lesson.',
+    implementation: 'Conducted across 6 weeks during Term 1 daily science periods.',
+    monitoring: 'Weekly 5-item formative quizzes recorded in student self-monitoring progress trackers.',
+    post_test_data: 'Post-test mean score: 8.6 / 10 (86% mastery level) with 91% passing rate.',
+    analysis: 'Paired t-test showed significant performance improvement (t = 8.15, p < 0.001) with high effect size (Cohen’s d = 1.42).',
+    reflection: 'Frequent low-stakes retrieval warm-ups built student confidence and reduced calculation anxiety.',
+    recommendation: 'Adopt 5-minute retrieval warm-ups across all Grade 8 to 10 Science sections in LNNCHS.',
+    research_type: 'Action Research',
+    grade_level: 'Grade 8',
+    subject: 'Science',
+    teacher: 'STEAVEN KINTH D. BOISER',
+    school: 'LNNCHS (Lanao del Norte National Comprehensive High School)',
+    created_at: '2026-08-10',
+    verification_status: 'VERIFIED'
+  }
+];
+
+export const SEED_INTERVENTIONS: InterventionLibraryItem[] = [
+  {
+    id: 'INT-01',
+    name: 'Daily Retrieval Practice Warm-Ups',
+    category: 'retrieval practice',
+    description: 'Short 5-minute low-stakes retrieval quizzes at the start of class to recall previous concepts without notes.',
+    subject: 'Science & Mathematics',
+    grade_level: 'Grade 7 to 12',
+    target_problem: 'Formula forgetting, poor retention of prerequisites, and test anxiety.',
+    evidence_source: 'Roediger & Karpicke (2006); Dela Cruz (2024)',
+    evidence_year: 2024,
+    implementation_notes: 'Keep quizzes non-punitive and provide immediate feedback right after completion.'
+  },
+  {
+    id: 'INT-02',
+    name: 'Concrete-Representational-Abstract (CRA) Sequence',
+    category: 'manipulatives',
+    description: '3-stage instructional strategy moving from hands-on physical manipulatives to visual diagrams and finally abstract algebraic symbols.',
+    subject: 'Mathematics',
+    grade_level: 'Grade 1 to 10',
+    target_problem: 'Difficulty understanding abstract algebraic variables and geometric proofs.',
+    evidence_source: 'Flores & Mercado (2023) APJME',
+    evidence_year: 2023,
+    implementation_notes: 'Do not rush the transition to abstract symbols until visual diagram mastery is demonstrated.'
+  }
+];
