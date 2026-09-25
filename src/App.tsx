@@ -12,6 +12,11 @@ import { BoiserDataAccessModal } from './components/BoiserDataAccessModal';
 import { StorageManagerModal } from './components/StorageManagerModal';
 import { OfflineBanner } from './components/OfflineBanner';
 import { DepEdTeacherSignInModal } from './components/DepEdTeacherSignInModal';
+import { HugeTVTourGuideModal } from './components/HugeTVTourGuideModal';
+import { Chathead } from './components/Chathead';
+import { SecuritySignalAlert } from './components/SecuritySignalAlert';
+import { RespectfulLockoutModal } from './components/RespectfulLockoutModal';
+import { executeSwitchToCebuanoMaleVoiceCommand } from './services/boiserVoiceService';
 
 // Lazy-loaded heavy modules for ultra-lightweight mobile footprint
 const SciencePPTGenerator = React.lazy(() => import('./components/SciencePPTGenerator').then(m => ({ default: m.SciencePPTGenerator })));
@@ -28,6 +33,7 @@ const EduAccessUniversalModule = React.lazy(() => import('./components/EduAccess
 const AICheckerFactScanner = React.lazy(() => import('./components/AICheckerFactScanner').then(m => ({ default: m.AICheckerFactScanner })));
 const GoogleDriveSyncModule = React.lazy(() => import('./components/GoogleDriveSyncModule').then(m => ({ default: m.GoogleDriveSyncModule })));
 const BoisertEmpirePortal = React.lazy(() => import('./components/BoisertEmpirePortal').then(m => ({ default: m.BoisertEmpirePortal })));
+const MasterActionResearchWorkflow = React.lazy(() => import('./components/MasterActionResearchWorkflow').then(m => ({ default: m.MasterActionResearchWorkflow })));
 
 const app = initializeApp(config);
 const db = getFirestore(app);
@@ -608,15 +614,54 @@ const ModuleLoadingFallback = () => (
   </div>
 );
 
+import { useAuth } from './context/AuthContext';
+
 export default function App() {
+  const { currentUser: authUser, isAuthenticated, isOwner: authIsOwner } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [isAppUnlocked, setIsAppUnlocked] = useState(false);
   const [isMasterMode, setIsMasterMode] = useState(false);
+
+  // Sync unlock state with authentication for "doors always open"
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsAppUnlocked(true);
+      setIsMasterMode(true); // Grant full access to authenticated DepEd users
+    }
+  }, [isAuthenticated]);
+
+  // Online Guard Component for LIS / Official Templates
+  const OnlineGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    if (!isOnline) {
+      return (
+        <div className="flex flex-col items-center justify-center p-12 bg-white/80 backdrop-blur-md rounded-3xl border-2 border-dashed border-blue-300 shadow-xl max-w-2xl mx-auto my-12 text-center space-y-6">
+          <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 animate-pulse">
+            <Globe className="w-10 h-10" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-black text-[#092B62] uppercase tracking-tight">Internet Connection Required</h2>
+            <p className="text-stone-600 font-medium">
+              The <strong>Learner Information System (LIS)</strong> and <strong>Official School Forms (SF1–SF10)</strong> require a live connection to synchronize with DepEd Central Office servers.
+            </p>
+          </div>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-[#092B62] text-white rounded-2xl font-black text-sm flex items-center gap-2 hover:bg-blue-900 transition-all shadow-lg active:scale-95"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>Retry Connection</span>
+          </button>
+        </div>
+      );
+    }
+    return <>{children}</>;
+  };
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isDataAccessModalOpen, setIsDataAccessModalOpen] = useState(false);
   const [isStorageModalOpen, setIsStorageModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isTeacherAuthModalOpen, setIsTeacherAuthModalOpen] = useState(false);
+  const [isTVTourModalOpen, setIsTVTourModalOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const triggerAlert = (msg: string) => {
@@ -782,8 +827,8 @@ export default function App() {
       }
       
       const newComps: CompetencyRecord[] = combinedFiles.map((f: any, idx: number) => ({
-        id: `drive-folder-${f.id || idx}`,
-        code: `SSHS-F-${idx + 1}`,
+        id: `drive-folder-${f.id || idx}-${Date.now()}-${idx}`,
+        code: `SSHS-F-${idx + 1}-${Date.now().toString().slice(-4)}`,
         competency: `SSHS Folder Exemplar & LAS: ${f.name.replace(/_/g, ' ')}`,
         subject: 'Senior High School Core',
         grade: 'Grade 11',
@@ -801,7 +846,9 @@ export default function App() {
         status: 'CURRENT'
       }));
 
-      const merged = [...newComps, ...competencies];
+      const existingIds = new Set(competencies.map(c => c.id));
+      const uniqueNewComps = newComps.filter(c => !existingIds.has(c.id));
+      const merged = [...uniqueNewComps, ...competencies];
       saveCompetencies(merged);
       triggerAlert(`✓ Successfully synced & stocked ${newComps.length} SSHS Lesson Exemplars & LAS from the two Google Drive folders!`);
     } catch (err: any) {
@@ -2104,6 +2151,10 @@ Search Query: "${q}" | Verified against Google Scholar & DepEd Research Portal.`
 
   return (
     <div className="min-h-screen bg-[#f3f6fb] text-[#152238] font-sans flex flex-col selection:bg-blue-100 selection:text-blue-900 antialiased">
+      {/* GLOBAL LIVE SECURITY SIGNAL ALERT BANNER */}
+      <SecuritySignalAlert />
+      <RespectfulLockoutModal />
+
       {/* 1. STICKY TOP HEADER */}
       <header className="bg-gradient-to-r from-[#092b62] via-[#0b4ea2] to-[#0b67b2] text-white p-3.5 sm:p-5 sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -2137,6 +2188,25 @@ Search Query: "${q}" | Verified against Google Scholar & DepEd Research Portal.`
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            {/* 4K TV TOUR GUIDE & VOICE COMMAND BUTTONS */}
+            <button
+              onClick={() => setIsTVTourModalOpen(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:brightness-110 text-slate-950 flex items-center gap-1.5 transition cursor-pointer shadow-md border border-amber-200"
+              title="Open Creative 4K TV Tour Guide & Tutor"
+            >
+              <span>📺 4K TV Tour</span>
+            </button>
+
+            <button
+              onClick={() => {
+                executeSwitchToCebuanoMaleVoiceCommand();
+              }}
+              className="px-3 py-1.5 rounded-xl text-xs font-black bg-gradient-to-r from-cyan-400 to-blue-500 hover:brightness-110 text-slate-950 flex items-center gap-1.5 transition cursor-pointer shadow-md border border-cyan-200"
+              title="Command: Immediately set tour guide voice to calm, clear Cebuano male voice accent with clear pronunciation"
+            >
+              <span>🎙️ Cebuano Male Voice</span>
+            </button>
+
             {/* DepEd Teacher Free Setup Button */}
             <button
               onClick={() => setIsTeacherAuthModalOpen(true)}
@@ -2249,7 +2319,7 @@ Search Query: "${q}" | Verified against Google Scholar & DepEd Research Portal.`
       )}
 
       {/* 4. MAIN WORKSPACE */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
+      <main className={`flex-1 w-full mx-auto pb-20 md:pb-8 ${activeTab === 'dashboard' ? 'max-w-[1440px] p-2 sm:p-4' : 'max-w-7xl p-4 sm:p-6 lg:p-8'}`}>
         <React.Suspense fallback={<ModuleLoadingFallback />}>
 
         {/* ==================== HOME DASHBOARD ==================== */}
@@ -3046,9 +3116,11 @@ Search Query: "${q}" | Verified against Google Scholar & DepEd Research Portal.`
 
         {/* ==================== LNNCHS TEMPLATES (SF1-SF10) TAB ==================== */}
         {activeTab === 'lnnchs_templates' && (
-          <div className="max-w-7xl mx-auto space-y-6">
-            <LNNCHSTemplatesManager />
-          </div>
+          <OnlineGuard>
+            <div className="max-w-7xl mx-auto space-y-6">
+              <LNNCHSTemplatesManager />
+            </div>
+          </OnlineGuard>
         )}
 
         {/* ==================== CURRICULUM DATABASE ==================== */}
@@ -4135,6 +4207,14 @@ Search Query: "${q}" | Verified against Google Scholar & DepEd Research Portal.`
           </div>
         )}
 
+        {(activeTab === 'action-research' || activeTab === 'action_research') && (
+          <div className="max-w-7xl mx-auto p-4 sm:p-8">
+            <React.Suspense fallback={<ModuleLoadingFallback />}>
+              <MasterActionResearchWorkflow />
+            </React.Suspense>
+          </div>
+        )}
+
         {activeTab === 'lrmds' && (
           <div className="max-w-7xl mx-auto p-4 sm:p-8">
             <LRMDSModule />
@@ -4281,6 +4361,13 @@ Search Query: "${q}" | Verified against Google Scholar & DepEd Research Portal.`
       <DepEdTeacherSignInModal
         isOpen={isTeacherAuthModalOpen}
         onClose={() => setIsTeacherAuthModalOpen(false)}
+        onSuccess={() => setIsTVTourModalOpen(true)}
+      />
+
+      {/* CREATIVE 4K HUGE TV TOUR GUIDE & TUTOR MODAL */}
+      <HugeTVTourGuideModal
+        isOpen={isTVTourModalOpen}
+        onClose={() => setIsTVTourModalOpen(false)}
       />
 
       {/* OFFLINE STATUS BANNER */}
@@ -4299,6 +4386,7 @@ Search Query: "${q}" | Verified against Google Scholar & DepEd Research Portal.`
           </span>
         </div>
       </footer>
+      <Chathead />
     </div>
   );
 }

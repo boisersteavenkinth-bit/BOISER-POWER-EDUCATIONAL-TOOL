@@ -452,6 +452,44 @@ function buildFallbackLesson(competency: any, teacherNotes?: string) {
   };
 }
 
+// Generate Substitution Plan endpoint
+app.post('/api/generate-substitution', async (req, res) => {
+  try {
+    const { subject, section, notes } = req.body;
+    const ai = getAI();
+    const promptText = `
+      You are a DepEd Master Teacher.
+      Create a detailed substitution plan for a substitute teacher.
+      
+      CRITICAL INSTRUCTION: 
+      - The substitution schedule MUST strictly start at 7:30 AM.
+      - DO NOT use 8:30 AM or any other start time.
+      - Use 7:30 AM as the absolute start of classes for this report.
+      
+      Details:
+      - Subject: ${subject}
+      - Section: ${section}
+      - Notes/Instructions: ${notes}
+      
+      The plan should include:
+      - Start time: 7:30 AM
+      - Lesson Objectives
+      - Activities (structured for a sub teacher)
+      - Classroom Management tips
+    `;
+    
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [{ parts: [{ text: promptText }] }],
+    });
+    
+    return res.json({ success: true, data: response.text });
+  } catch (error) {
+    console.error('Error generating substitution plan:', error);
+    return res.status(500).json({ error: 'Failed to generate substitution plan' });
+  }
+});
+
 // Generate DepEd Assessment Items and Rubrics endpoint
 // Complete DepEd DO 3, s. 2026 ILAW Lesson Plan Generation Endpoint
 app.post('/api/generate-ilaw-do3', async (req, res) => {
@@ -3253,7 +3291,10 @@ function buildOfflineFactCheck(inputText: string) {
 
 // Start server function handling Vite in dev and static files in prod
 async function startServer() {
-  if (process.env.NODE_ENV === 'development') {
+  // Use Vite middlewares in development (whenever NODE_ENV is not explicitly production)
+  const isDev = process.env.NODE_ENV !== 'production';
+  
+  if (isDev) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa'

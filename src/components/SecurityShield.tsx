@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { ShieldAlert, Lock, AlertOctagon, UserX, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { logSecurityBreach } from '../services/securityAlertService';
 
 interface SecurityShieldProps {
   children: React.ReactNode;
@@ -43,12 +44,6 @@ export const SecurityShield: React.FC<SecurityShieldProps> = ({ children, isOwne
         e.preventDefault();
         triggerTamperAlert('Security Protocol: Content saving blocked.');
       }
-      // Ctrl+C (Copy)
-      if (e.ctrlKey && e.key === 'c') {
-        // We allow some copying if necessary, but can block it globally if desired
-        // e.preventDefault();
-        // triggerTamperAlert('Content Protection: Copying disabled.');
-      }
     };
 
     // 3. Detect DevTools Opening
@@ -69,6 +64,14 @@ export const SecurityShield: React.FC<SecurityShieldProps> = ({ children, isOwne
       console.log('%c STOP! ', 'background: red; color: white; font-size: 50px; font-weight: bold;');
       console.log('%c This application and its code are the intellectual property of Steaven Kinth D. Boiser. Unauthorized access or copying is strictly prohibited. ', 'font-size: 20px; color: red;');
       
+      logSecurityBreach(
+        'External Inspector / Guest',
+        'intruder@browser.node',
+        `Attempted DevTools/Inspection/Copying: ${type}`,
+        'UNAUTHORIZED_COPY_ATTEMPT',
+        `Browser event trigger: ${type}`
+      );
+
       setTimeout(() => setIsTampered(false), 5000);
     };
 

@@ -18,6 +18,8 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { LNNCHS_OFFICIAL_DOCUMENTS, OfficialDocumentItem } from '../data/lnnchsOfficialDocumentsData';
+import { LnnchsDoorResultPreviewModal, PreviewItemData } from './LnnchsDoorResultPreviewModal';
+import { Eye } from 'lucide-react';
 
 export const LNNCHSOfficialDocumentsModule: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -25,6 +27,7 @@ export const LNNCHSOfficialDocumentsModule: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState<string>('ALL');
   const [expandedDocId, setExpandedDocId] = useState<string | null>(LNNCHS_OFFICIAL_DOCUMENTS[0].id);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [previewDocData, setPreviewDocData] = useState<PreviewItemData | null>(null);
 
   const categories = useMemo(() => {
     return ['ALL', 'Student Handbook', 'Regional Memorandum', 'Division Memorandum', 'DepEd Order', 'School Memorandum', 'Curriculum & Rubric'];
@@ -255,6 +258,26 @@ Email: 304005.ldn@deped.gov.ph • DepEd Region X
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        setPreviewDocData({
+                          id: doc.id,
+                          title: doc.title,
+                          code: doc.code,
+                          category: doc.category,
+                          description: doc.summary,
+                          gradeLevel: doc.applicableGrades.join(', '),
+                          sectionName: doc.applicableSections.join(', '),
+                          adviserName: doc.issuer
+                        });
+                      }}
+                      title="Preview summary & download files (.docx, .pptx, .xlsx, .pdf)"
+                      className="p-2 bg-gradient-to-r from-blue-700 to-indigo-800 hover:brightness-110 text-white rounded-xl transition text-xs font-black flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Eye className="w-4 h-4 text-amber-300" />
+                      <span className="hidden sm:inline">Preview</span>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         handleDownloadDocSummary(doc);
                       }}
                       title="Download text summary"
@@ -355,6 +378,15 @@ Email: 304005.ldn@deped.gov.ph • DepEd Region X
           })
         )}
       </div>
+
+      {/* Modal Preview for Official Document Result */}
+      {previewDocData && (
+        <LnnchsDoorResultPreviewModal
+          itemData={previewDocData}
+          isOpen={true}
+          onClose={() => setPreviewDocData(null)}
+        />
+      )}
     </div>
   );
 };

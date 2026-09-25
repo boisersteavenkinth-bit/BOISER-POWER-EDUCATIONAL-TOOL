@@ -21,6 +21,7 @@ import {
   SourceStatus
 } from '../types/masterResearchCurriculum';
 import { SEED_CURRICULUM_RECORDS } from '../data/masterDatabaseSeed';
+import { Edit3, Save, X } from 'lucide-react';
 
 interface CurriculumDatabaseModuleProps {
   importedRecords?: CurriculumRecordMaster[];
@@ -29,16 +30,31 @@ interface CurriculumDatabaseModuleProps {
 export const CurriculumDatabaseModule: React.FC<CurriculumDatabaseModuleProps> = ({
   importedRecords = []
 }) => {
-  const [records, setRecords] = useState<CurriculumRecordMaster[]>([
-    ...SEED_CURRICULUM_RECORDS,
-    ...importedRecords
-  ]);
+  const [records, setRecords] = useState<CurriculumRecordMaster[]>(() => {
+    const saved = localStorage.getItem('lnnchs_custom_curriculum_records');
+    if (saved) return JSON.parse(saved);
+    return [...SEED_CURRICULUM_RECORDS, ...importedRecords];
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVersion, setSelectedVersion] = useState<CurriculumVersion | 'ALL'>('ALL');
   const [selectedTerm, setSelectedTerm] = useState<'ALL' | 'Term 1' | 'Term 2' | 'Term 3'>('ALL');
   const [selectedGrade, setSelectedGrade] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<SourceStatus | 'ALL'>('ALL');
   const [inspectRecord, setInspectRecord] = useState<CurriculumRecordMaster | null>(null);
+  const [editingRecord, setEditingRecord] = useState<CurriculumRecordMaster | null>(null);
+
+  const saveRecords = (newRecords: CurriculumRecordMaster[]) => {
+    setRecords(newRecords);
+    localStorage.setItem('lnnchs_custom_curriculum_records', JSON.stringify(newRecords));
+  };
+
+  const handleUpdateRecord = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingRecord) return;
+    const updated = records.map(r => r.curriculum_id === editingRecord.curriculum_id ? editingRecord : r);
+    saveRecords(updated);
+    setEditingRecord(null);
+  };
 
   const filtered = records.filter((r) => {
     const q = searchQuery.toLowerCase();
@@ -258,21 +274,119 @@ export const CurriculumDatabaseModule: React.FC<CurriculumDatabaseModuleProps> =
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-[11px]">
-              <span className="text-stone-400 truncate max-w-[200px]" title={record.source_document}>
+            <div className="flex items-center justify-between pt-2 border-t border-stone-100 text-[11px] gap-2">
+              <span className="text-stone-400 truncate flex-1" title={record.source_document}>
                 Source: {record.source_document}
               </span>
-              <button
-                onClick={() => setInspectRecord(record)}
-                className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0038A8] font-bold transition flex items-center gap-1 cursor-pointer"
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Inspect Record</span>
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => setEditingRecord(record)}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold transition flex items-center gap-1 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  onClick={() => setInspectRecord(record)}
+                  className="px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0038A8] font-bold transition flex items-center gap-1 cursor-pointer"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>Inspect</span>
+                </button>
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Record Edit Modal */}
+      {editingRecord && (
+        <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-stone-200 space-y-6 animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-stone-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-600">
+                  <Edit3 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-stone-900">Manual Record Adjustment</h3>
+                  <p className="text-xs text-stone-500 uppercase font-bold tracking-wider">{editingRecord.competency_code}</p>
+                </div>
+              </div>
+              <button onClick={() => setEditingRecord(null)} className="p-2 hover:bg-stone-100 rounded-full transition">
+                <X className="w-5 h-5 text-stone-400" />
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateRecord} className="space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-stone-500">Competency Statement</label>
+                <textarea
+                  value={editingRecord.competency_text}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, competency_text: e.target.value })}
+                  className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 outline-none min-h-[100px]"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-stone-500">Grade Level</label>
+                  <input
+                    type="text"
+                    value={editingRecord.grade_level}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, grade_level: e.target.value })}
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase text-stone-500">Subject</label>
+                  <input
+                    type="text"
+                    value={editingRecord.subject}
+                    onChange={(e) => setEditingRecord({ ...editingRecord, subject: e.target.value })}
+                    className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-stone-500">Content Standard</label>
+                <textarea
+                  value={editingRecord.content_standard || ''}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, content_standard: e.target.value })}
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs min-h-[60px]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-black uppercase text-stone-500">Performance Standard</label>
+                <textarea
+                  value={editingRecord.performance_standard || ''}
+                  onChange={(e) => setEditingRecord({ ...editingRecord, performance_standard: e.target.value })}
+                  className="w-full p-2.5 bg-stone-50 border border-stone-200 rounded-xl text-xs min-h-[60px]"
+                />
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingRecord(null)}
+                  className="flex-1 py-3 bg-stone-100 hover:bg-stone-200 text-stone-700 font-black rounded-xl text-xs transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-xl text-xs transition shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>Save Manual Edits</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Record Inspection Modal */}
       {inspectRecord && (

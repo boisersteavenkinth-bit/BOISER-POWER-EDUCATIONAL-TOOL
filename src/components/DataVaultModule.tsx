@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Database, ShieldCheck, FolderGit2, BookOpen, Lightbulb, Archive, Settings, CheckCircle2, AlertTriangle, Search, Plus, RefreshCw, Cpu, FileText } from 'lucide-react';
+import { Database, ShieldCheck, FolderGit2, BookOpen, Lightbulb, Archive, Settings, CheckCircle2, AlertTriangle, Search, Plus, RefreshCw, Cpu, FileText, HardDrive, Sparkles } from 'lucide-react';
+import { useStorageManager } from '../hooks/useStorageManager';
 
 interface VaultRecord {
   id: string;
@@ -15,6 +16,7 @@ interface VaultRecord {
 }
 
 export const DataVaultModule: React.FC = () => {
+  const { breakdown, maximize500GBCacheVault, runAutoCacheMaintenanceCleaner, isClearing, clearResult } = useStorageManager();
   const [activeSection, setActiveSection] = useState<'all' | 'Knowledge Library' | 'Innovation Lab' | 'Project Memory' | 'Verification Center' | 'User Preferences' | 'Archive'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewModal, setShowNewModal] = useState(false);
@@ -133,6 +135,109 @@ export const DataVaultModule: React.FC = () => {
           <Plus className="w-4 h-4" />
           <span>New Innovation Intake</span>
         </button>
+      </div>
+
+      {/* 500 GB Offline Data Vault Quota, Headroom & Maintenance Panel */}
+      <div className="bg-gradient-to-br from-slate-900 via-blue-950 to-stone-900 rounded-3xl p-6 sm:p-8 text-white border-2 border-amber-400/50 shadow-xl space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-amber-400 text-stone-950 rounded-2xl shadow-lg font-black">
+              <HardDrive className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-amber-300">
+                  ⚡ 500 GB OFFLINE DATA VAULT QUOTA &amp; HEADROOM MONITOR
+                </h3>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-black uppercase">
+                  Active Persistent Vault
+                </span>
+              </div>
+              <p className="text-xs text-stone-300 mt-0.5">
+                Configured to persist massive offline datasets (MATATAG curriculum, 3D Spatial models, SF1–SF10 records &amp; ILAW drafts)
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => maximize500GBCacheVault()}
+              disabled={isClearing}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:brightness-110 text-stone-950 font-black text-xs uppercase rounded-xl shadow-md border border-amber-200 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+            >
+              <Sparkles className="w-4 h-4 text-stone-950 animate-pulse" />
+              <span>⚡ Maximize 500 GB Vault</span>
+            </button>
+
+            <button
+              onClick={() => runAutoCacheMaintenanceCleaner(true)}
+              disabled={isClearing}
+              className="px-4 py-2.5 bg-stone-800 hover:bg-stone-700 text-cyan-300 font-bold text-xs uppercase rounded-xl border border-cyan-400/40 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Run Auto-Cleaner</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Clear Result Notice */}
+        {clearResult && (
+          <div className="p-3.5 bg-emerald-500/20 border border-emerald-400/50 rounded-2xl text-emerald-200 text-xs font-bold flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
+            <span>{clearResult}</span>
+          </div>
+        )}
+
+        {/* Live Headroom & Quota Metrics Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Allocated Vault Quota</span>
+            <div className="text-2xl font-black text-amber-300 font-mono">500.0 GB</div>
+            <span className="text-[10px] text-stone-300">Persistent IndexedDB / CacheStorage</span>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Estimated Vault Used</span>
+            <div className="text-2xl font-black text-cyan-300 font-mono">{breakdown.estimatedVaultUsedGB.toFixed(1)} GB</div>
+            <span className="text-[10px] text-stone-300">Active offline cached datasets</span>
+          </div>
+
+          <div className="bg-white/5 border border-emerald-400/40 rounded-2xl p-4 space-y-1 bg-emerald-950/20">
+            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Available Storage Headroom</span>
+            <div className="text-2xl font-black text-emerald-300 font-mono">{breakdown.headroomGB.toFixed(1)} GB</div>
+            <span className="text-[10px] text-emerald-200 font-semibold">✓ Massive headroom for heavy datasets</span>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-1">
+            <span className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">Auto-Cleaner Threshold</span>
+            <div className="text-2xl font-black text-amber-400 font-mono">400.0 GB</div>
+            <span className="text-[10px] text-stone-300">Signals alert &amp; auto-cleans render buffers</span>
+          </div>
+
+        </div>
+
+        {/* Headroom Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono font-bold text-stone-300">
+            <span>Data Vault Headroom Allocation Meter</span>
+            <span className="text-emerald-400">
+              {breakdown.headroomGB.toFixed(1)} GB Headroom Available ({((breakdown.headroomGB / 500) * 100).toFixed(1)}% Free Space)
+            </span>
+          </div>
+          <div className="w-full bg-stone-950 rounded-full h-4 overflow-hidden border border-stone-800 p-0.5 relative">
+            <div
+              className="bg-gradient-to-r from-blue-600 via-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-500"
+              style={{ width: `${Math.max(2, Math.min(100, (breakdown.estimatedVaultUsedGB / 500) * 100))}%` }}
+            />
+            {/* 400 GB Signal Marker */}
+            <div
+              className="absolute top-0 bottom-0 w-1 bg-amber-400 z-10"
+              style={{ left: '80%' }}
+              title="400 GB Signal Alert Threshold Marker"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Dashboard Stats */}

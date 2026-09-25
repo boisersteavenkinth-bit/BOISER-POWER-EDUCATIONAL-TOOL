@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   DoorClosed, 
   DoorOpen, 
@@ -29,16 +29,39 @@ import {
   ArrowRight,
   Compass,
   FolderOpen,
-  HeartPulse
+  HeartPulse,
+  Bell,
+  AlarmClock,
+  Download,
+  MessageSquare,
+  Camera,
+  FileCheck,
+  ListChecks,
+  Zap,
+  QrCode
 } from 'lucide-react';
 import { LNNCHS_20_SECTIONS_PER_GRADE, ALL_LNNCHS_SECTIONS, CONSOLIDATED_LIS_STUDENTS, SectionDefinition } from '../data/lnnchsCompleteSectionsDirectory';
 import { DocumentManager } from './DocumentManager';
+import { useAuth } from '../context/AuthContext';
+import { SingleSFInspector } from './SingleSFInspector';
+import { BoiserChatbot } from './BoiserChatbot';
+import { DoorFileSummary } from './DoorFileSummary';
+import { DoorCameraScanner } from './DoorCameraScanner';
+import { ILAWGenerator } from './ILAWGenerator';
+import { SummativeHub } from './SummativeHub';
+import { DoorChathead } from './DoorChathead';
+import { BOWGeneratorTool } from './BOWGeneratorTool';
+import { StudentDocumentVault } from './StudentDocumentVault';
+import { PrincipalDoorsView } from './PrincipalDoorsView';
+import { CebuanoVoiceGuide } from './CebuanoVoiceGuide';
+import { speakWithCebuanoMaleVoice } from '../services/boiserVoiceService';
+import { LnnchsDoorResultPreviewModal, PreviewItemData } from './LnnchsDoorResultPreviewModal';
 
 interface AdviserDoorsHomeProps {
   currentUser: {
     name: string;
     email: string;
-    role: 'master_creator' | 'adviser' | 'non_adviser';
+    role: 'master_creator' | 'adviser' | 'non_adviser' | 'user' | 'owner';
     section?: string;
   };
   schoolYear?: string;
@@ -46,15 +69,25 @@ interface AdviserDoorsHomeProps {
 }
 
 export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser, schoolYear = '2026-2027', setSchoolYear }) => {
-  const isMasterCreator = currentUser.role === 'master_creator' || currentUser.email === 'boisersteavenkinth@gmail.com';
+  const { isOwner, substitutionPlans, notifications, markNotificationRead } = useAuth();
+  const isMasterCreator = isOwner || currentUser.email === 'boisersteavenkinth@gmail.com';
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'sf_records' | 'summative' | 'activity_log' | 'document_manager'>('sf_records');
+  const [activeAdminDoorId, setActiveAdminDoorId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'sf_records' | 'summative' | 'activity_log' | 'document_manager' | 'substitution' | 'file_summary' | 'camera_hub' | 'weekly_dll' | 'summative_hub' | 'bow_generator' | 'summative_item_analysis' | 'student_vault'>('sf_records');
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [scannerMode, setScannerMode] = useState<'activity' | 'exam' | 'qr' | 'rute' | 'ddt'>('activity');
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showChathead, setShowChathead] = useState(false);
+  const [previewDoorData, setPreviewDoorData] = useState<{ doorName: string; doorRole: string; gradeLevel?: string; sectionName?: string; itemData?: PreviewItemData } | null>(null);
 
   // Door-to-Door Tutorial Modal State
   const [tutorialSection, setTutorialSection] = useState<SectionDefinition | null>(null);
   const [tutorialLang, setTutorialLang] = useState<'en' | 'tl' | 'ceb'>('en');
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Filter plans for this user
+  const myPlans = substitutionPlans.filter(p => p.substituteTeacherEmail === currentUser.email);
+  const unreadAlarms = notifications.filter(n => !n.read && n.type === 'alarm');
 
   // Load sections from localStorage if managed or default array
   const getSections = (): SectionDefinition[] => {
@@ -85,14 +118,9 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
 
   // Filter sections visible to user
   const visibleSections = safeSections.filter(sec => {
-    if (isMasterCreator) return true;
-    if (currentUser.role === 'adviser') {
-      const advName = (sec.adviserName || '').toLowerCase();
-      const advEmail = (sec.adviserEmail || '').toLowerCase();
-      const curName = (currentUser.name || '').toLowerCase();
-      const curEmail = (currentUser.email || '').toLowerCase();
-      return (advName && curName && advName === curName) || (advEmail && curEmail && advEmail === curEmail);
-    }
+    // Open ALL doors if master creator OR any authenticated DepEd user
+    if (isMasterCreator || currentUser.role === 'adviser' || currentUser.role === 'non_adviser') return true;
+    
     return false;
   });
 
@@ -112,22 +140,14 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
     return (advName && curName && advName === curName) || (advEmail && curEmail && advEmail === curEmail);
   };
 
-  const speakTutorial = (text: string, lang: 'en' | 'tl' | 'ceb') => {
-    if (!('speechSynthesis' in window)) {
-      alert('Speech synthesis not supported.');
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (lang === 'tl') utterance.lang = 'fil-PH';
-    else if (lang === 'ceb') utterance.lang = 'ceb-PH';
-    else utterance.lang = 'en-US';
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+  const speakTutorial = (text: string, _lang: 'en' | 'tl' | 'ceb') => {
+    setIsSpeaking(true);
+    speakWithCebuanoMaleVoice(text, {
+      appendTagline: true,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false)
+    });
   };
 
   const stopTutorialSpeech = () => {
@@ -176,6 +196,27 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* ALARM SIGNAL FOR CHOSEN TEACHERS */}
+      {unreadAlarms.length > 0 && (
+        <div className="bg-red-600 text-white p-4 rounded-2xl shadow-2xl border-4 border-red-400 animate-bounce flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-white text-red-600 rounded-full">
+              <AlarmClock className="w-6 h-6 animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-lg font-black uppercase tracking-tighter">🚨 WARNING: SUBSTITUTION ALERT! 🚨</h2>
+              <p className="text-sm font-bold opacity-90">{unreadAlarms[0].message}</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => markNotificationRead(unreadAlarms[0].id)}
+            className="px-6 py-2 bg-white text-red-600 font-black rounded-xl hover:bg-stone-100 transition shadow-lg"
+          >
+            I UNDERSTAND / DISMISS
+          </button>
+        </div>
+      )}
+
       {/* Hero Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#092B62] via-[#0d3b82] to-[#1254b8] p-6 sm:p-8 text-white shadow-xl border border-blue-400/30">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -311,8 +352,168 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
         </div>
       )}
 
-      {/* If a section door is currently opened */}
-      {activeSection ? (
+      {/* If an admin door is currently opened */}
+      {activeAdminDoorId === 'head-anisah' || activeAdminDoorId === 'head-andot' || activeAdminDoorId === 'head-calibo' ? (
+        <PrincipalDoorsView doorId={activeAdminDoorId} onClose={() => setActiveAdminDoorId(null)} />
+      ) : activeAdminDoorId === 'admin-guidance' ? (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-rose-300 space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-gradient-to-r from-rose-700 via-pink-800 to-rose-900 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 p-6 text-white rounded-t-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-4 border-[#FCD116]">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-rose-500/30 border-2 border-rose-300 flex items-center justify-center text-rose-200 shadow-inner shrink-0">
+                <HeartPulse className="w-8 h-8 text-rose-200" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-black tracking-widest text-rose-300">
+                  💖 Guidance &amp; Counseling Office
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">Learner Guidance &amp; Welfare Center</h2>
+                <p className="text-xs text-rose-100 font-medium">Confidential counseling records, behavioral support, and career advocacy.</p>
+              </div>
+            </div>
+            <button onClick={() => setActiveAdminDoorId(null)} className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-2xl text-xs font-black text-white transition cursor-pointer">
+              🚪 Close Door
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl">
+              <div className="font-bold text-rose-900 mb-1">Student Welfare Cases</div>
+              <div className="text-2xl font-black text-rose-950">0 Active Alerts</div>
+              <p className="text-[11px] text-rose-700 mt-1">Safe and nurturing campus climate.</p>
+            </div>
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+              <div className="font-bold text-emerald-900 mb-1">Career Guidance Track</div>
+              <div className="text-2xl font-black text-emerald-950">100% Oriented</div>
+              <p className="text-[11px] text-emerald-700 mt-1">College, Tech-Voc, &amp; Job readiness.</p>
+            </div>
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+              <div className="font-bold text-amber-900 mb-1">Guidance Counselor</div>
+              <div className="text-base font-black text-amber-950">Official LNNCHS Staff</div>
+              <p className="text-[11px] text-amber-800 mt-1">Protected records under Data Privacy.</p>
+            </div>
+          </div>
+        </div>
+      ) : activeAdminDoorId === 'admin-non-teaching' ? (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-purple-300 space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-gradient-to-r from-purple-800 via-indigo-900 to-purple-900 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 p-6 text-white rounded-t-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-4 border-[#FCD116]">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-purple-500/30 border-2 border-purple-300 flex items-center justify-center text-purple-200 shadow-inner shrink-0">
+                <UserCheck className="w-8 h-8 text-purple-200" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-black tracking-widest text-purple-300">
+                  📁 Administrative Operations
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">Non-Teaching Staff &amp; A.O. Hub (Ma'am Dayan)</h2>
+                <p className="text-xs text-purple-100 font-medium">School inventory, property management, document routing, and HR support.</p>
+              </div>
+            </div>
+            <button onClick={() => setActiveAdminDoorId(null)} className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-2xl text-xs font-black text-white transition cursor-pointer">
+              🚪 Close Door
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="p-4 bg-purple-50 border border-purple-200 rounded-2xl">
+              <div className="font-bold text-purple-900 mb-1">Administrative Officer (A.O.)</div>
+              <div className="text-base font-black text-purple-950">Ma'am Dayan &amp; A.O. Staff</div>
+              <p className="text-[11px] text-purple-700 mt-1">Official LNNCHS Administrative Desk.</p>
+            </div>
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+              <div className="font-bold text-blue-900 mb-1">School Property Inventory</div>
+              <div className="text-2xl font-black text-blue-950">Synchronized</div>
+              <p className="text-[11px] text-blue-700 mt-1">Textbooks, equipment, &amp; lab supplies.</p>
+            </div>
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+              <div className="font-bold text-emerald-900 mb-1">Official Document Tracker</div>
+              <div className="text-2xl font-black text-emerald-950">0 Backlogs</div>
+              <p className="text-[11px] text-emerald-700 mt-1">All communications logged &amp; filed.</p>
+            </div>
+          </div>
+        </div>
+      ) : activeAdminDoorId === 'admin-co-adviser' ? (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-cyan-300 space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-gradient-to-r from-cyan-800 via-blue-900 to-cyan-900 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 p-6 text-white rounded-t-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-4 border-[#FCD116]">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-500/30 border-2 border-cyan-300 flex items-center justify-center text-cyan-200 shadow-inner shrink-0">
+                <Users className="w-8 h-8 text-cyan-200" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-black tracking-widest text-cyan-300">
+                  👥 Subject Faculty Resource Center
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">Co-Advisers &amp; Subject Teachers Door</h2>
+                <p className="text-xs text-cyan-100 font-medium">Teaching load scheduling, curriculum alignment, and test item generation without co-adviser overhead.</p>
+              </div>
+            </div>
+            <button onClick={() => setActiveAdminDoorId(null)} className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-2xl text-xs font-black text-white transition cursor-pointer">
+              🚪 Close Door
+            </button>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <div className="p-4 bg-cyan-50 border border-cyan-200 rounded-2xl">
+              <div className="font-bold text-cyan-900 mb-1">Subject Faculty Loading</div>
+              <div className="text-2xl font-black text-cyan-950">Direct Access</div>
+              <p className="text-[11px] text-cyan-700 mt-1">Individual teaching schedules ready.</p>
+            </div>
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+              <div className="font-bold text-blue-900 mb-1">Test Question Bank</div>
+              <div className="text-2xl font-black text-blue-950">TOS Aligned</div>
+              <p className="text-[11px] text-blue-700 mt-1">Summative &amp; RUTE exam generator.</p>
+            </div>
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+              <div className="font-bold text-emerald-900 mb-1">ILAW Exemplar Drafting</div>
+              <div className="text-2xl font-black text-emerald-950">Ready to Edit</div>
+              <p className="text-[11px] text-emerald-700 mt-1">Direct submission to Ma'am Calibo.</p>
+            </div>
+          </div>
+        </div>
+      ) : activeAdminDoorId === 'admin-registrar' ? (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-blue-400 space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-gradient-to-r from-blue-700 via-blue-800 to-indigo-900 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 p-6 text-white rounded-t-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-4 border-[#FCD116]">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-blue-500/30 border-2 border-blue-300 flex items-center justify-center text-blue-200 shadow-inner shrink-0">
+                <FileSpreadsheet className="w-8 h-8 text-blue-200" />
+              </div>
+              <div>
+                <div className="text-[10px] uppercase font-black tracking-widest text-blue-300">
+                  🏢 Registrar Office • Official LIS Gateway
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">
+                  Registrar Command Center
+                </h2>
+                <p className="text-xs text-blue-100 font-medium">
+                  Official enrollment, record inspection, and SF synchronization hub.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveAdminDoorId(null)}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/30 rounded-2xl text-xs font-black text-white flex items-center gap-2 transition cursor-pointer"
+            >
+              <span>🚪 Close Registrar Door</span>
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="space-y-6">
+                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl flex items-center gap-3">
+                  <ShieldCheck className="w-6 h-6 text-emerald-600" />
+                  <div>
+                    <span className="text-xs font-black text-emerald-900 uppercase">Registrar Access Verified</span>
+                    <p className="text-[10px] text-emerald-700">You are currently inspecting official LNNCHS records with full read/write LIS permissions.</p>
+                  </div>
+                </div>
+
+                <div className="h-[500px] border border-blue-200 rounded-3xl overflow-hidden shadow-sm">
+                  <BoiserChatbot variant="embedded" />
+                </div>
+              </div>
+
+              <SingleSFInspector />
+            </div>
+          </div>
+        </div>
+      ) : activeSection ? (
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-2xl border-2 border-amber-400/50 space-y-6 animate-in zoom-in-95 duration-200">
           {/* House Roof & Header */}
           <div className="bg-gradient-to-r from-amber-700 via-amber-800 to-stone-900 -mx-6 sm:-mx-8 -mt-6 sm:-mt-8 p-6 text-white rounded-t-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-4 border-[#FCD116]">
@@ -333,7 +534,36 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setPreviewDoorData({
+                  doorName: activeSection.adviserName,
+                  doorRole: `Resident Adviser • Grade ${activeSection.gradeLevel} ${activeSection.sectionName}`,
+                  gradeLevel: `Grade ${activeSection.gradeLevel}`,
+                  sectionName: activeSection.sectionName
+                })}
+                className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:brightness-110 text-white font-black rounded-2xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow border border-cyan-300"
+              >
+                <Eye className="w-4 h-4 text-amber-300" />
+                <span>👁️ Preview &amp; Download Results</span>
+              </button>
+
+              <button
+                onClick={() => {
+                   showNotification('success', `Assign Subject BOW for ${activeSection.sectionName} downloaded!`);
+                }}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download assigned BOW</span>
+              </button>
+              <button
+                onClick={() => setShowChathead(!showChathead)}
+                className={`px-4 py-2 rounded-2xl text-xs font-black flex items-center gap-1.5 transition cursor-pointer shadow ${showChathead ? 'bg-red-500 text-white hover:bg-red-600' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
+              >
+                <MessageSquare className="w-4 h-4" />
+                <span>{showChathead ? 'Disable Chat' : 'Enable Chat'}</span>
+              </button>
               <button
                 onClick={() => setTutorialSection(activeSection)}
                 className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black rounded-2xl text-xs flex items-center gap-1.5 transition cursor-pointer shadow"
@@ -354,9 +584,16 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
           <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-stone-200">
             {[
               { id: 'sf_records', label: '📋 Official SF1–SF10 Reports', icon: FileSpreadsheet },
-              { id: 'summative', label: '📈 LIS Student Summative Records', icon: Award },
-              { id: 'document_manager', label: '📂 Document Manager', icon: FolderOpen },
-              { id: 'activity_log', label: '🔒 Secure Activity & Click Log', icon: Activity }
+              { id: 'student_vault', label: '🗂️ Student Document Vault', icon: FolderOpen },
+              { id: 'bow_generator', label: '📚 Budget of Work (BOW)', icon: BookOpen },
+              { id: 'summative_item_analysis', label: '📊 Summative Test & Item Analysis', icon: BarChart3 },
+              { id: 'file_summary', label: '📂 Door File Summary', icon: FolderOpen },
+              { id: 'camera_hub', label: '📸 Smart Scanner Hub', icon: Camera },
+              { id: 'weekly_dll', label: '📝 Weekly DLL/ILAW', icon: Sparkles },
+              { id: 'summative_hub', label: '🏆 Summative Tests', icon: Award },
+              { id: 'summative', label: '📈 LIS Student Records', icon: UserCheck },
+              { id: 'substitution', label: '🛡️ My Substitution Plans', icon: AlarmClock },
+              { id: 'activity_log', label: '🔒 Secure Activity Log', icon: Activity }
             ].map(tab => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -376,6 +613,41 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
               );
             })}
           </div>
+
+          {/* Tab Content: Student Document Vault */}
+          {activeTab === 'student_vault' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <StudentDocumentVault sectionName={activeSection.sectionName} gradeLevel={activeSection.gradeLevel} teacherName={activeSection.adviserName} />
+            </div>
+          )}
+
+          {/* Tab Content: BOW Generator */}
+          {activeTab === 'bow_generator' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <BOWGeneratorTool />
+            </div>
+          )}
+
+          {/* Tab Content: Summative & Item Analysis */}
+          {activeTab === 'summative_item_analysis' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-gradient-to-r from-blue-900 to-indigo-900 p-6 rounded-3xl text-white shadow-md flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-black flex items-center gap-2">
+                    <BarChart3 className="w-5 h-5 text-amber-300" />
+                    <span>Summative Test Results, RUTE Periodicals &amp; Item Analysis Hub</span>
+                  </h3>
+                  <p className="text-xs text-blue-100 mt-1">
+                    Upload student test results, compute item difficulty indices, generate Table of Specifications (TOS), and run exact fact-check calculation tables for Math &amp; Physics exams.
+                  </p>
+                </div>
+                <span className="px-3 py-1 bg-amber-400 text-stone-950 font-black rounded-full text-xs">
+                  DepEd Regional Exam Compliant
+                </span>
+              </div>
+              <SummativeHub sectionName={activeSection.sectionName} gradeLevel={activeSection.gradeLevel} />
+            </div>
+          )}
 
           {/* Tab Content 1: SF1 - SF10 Reports */}
           {activeTab === 'sf_records' && (
@@ -420,11 +692,35 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
 
                     <div className="flex items-center gap-2 pt-3 border-t border-stone-200">
                       <button
+                        onClick={() => {
+                          setPreviewDoorData({
+                            doorName: `${form.name} — ${activeSection.sectionName}`,
+                            doorRole: `Official School Form • ${activeSection.adviserName}`,
+                            gradeLevel: `Grade ${activeSection.gradeLevel}`,
+                            sectionName: activeSection.sectionName,
+                            itemData: {
+                              id: form.code,
+                              title: form.name,
+                              code: form.code,
+                              category: 'Official School Form',
+                              description: form.desc,
+                              gradeLevel: `Grade ${activeSection.gradeLevel}`,
+                              sectionName: activeSection.sectionName,
+                              adviserName: activeSection.adviserName
+                            }
+                          });
+                        }}
+                        className="flex-1 py-2 bg-gradient-to-r from-amber-400 to-yellow-400 hover:brightness-110 text-stone-950 font-black rounded-xl text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-stone-950" />
+                        <span>Preview</span>
+                      </button>
+                      <button
                         onClick={() => showNotification('success', `Generated ${form.code} for ${activeSection.sectionName}`)}
-                        className="flex-1 py-2 bg-[#092B62] hover:bg-blue-900 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition"
+                        className="flex-1 py-2 bg-[#092B62] hover:bg-blue-900 text-white rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition cursor-pointer"
                       >
                         <FileText className="w-3.5 h-3.5 text-amber-300" />
-                        <span>View / Export</span>
+                        <span>Export</span>
                       </button>
                     </div>
                   </div>
@@ -433,13 +729,117 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
             </div>
           )}
 
-          {/* Tab Content 2: Summative Records */}
+          {/* Tab Content 2: Door File Summary */}
+          {activeTab === 'file_summary' && (
+            <DoorFileSummary sectionName={activeSection.sectionName} gradeLevel={`Grade ${activeSection.gradeLevel}`} />
+          )}
+
+          {/* Tab Content 3: Smart Scanner Hub */}
+          {activeTab === 'camera_hub' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-slate-900 text-white p-8 rounded-3xl border border-slate-700 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl" />
+                <div className="relative z-10 space-y-4">
+                   <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-400 text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest">
+                      <Camera className="w-3 h-3" /> Smart Vision Node
+                   </div>
+                   <h3 className="text-2xl font-black uppercase tracking-tight">Digital Inspection & Grading Hub</h3>
+                   <p className="text-slate-400 text-xs max-w-xl font-medium leading-relaxed">
+                      Use the high-precision camera to scan student activities, exam answer sheets (RUTE), and official DepEd QR codes. AI-powered scoring generates results with instant pedagogical explanations.
+                   </p>
+                   
+                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
+                      {[
+                        { id: 'activity', name: 'Check Activity', icon: FileCheck },
+                        { id: 'exam', name: 'Grade Exam', icon: ListChecks },
+                        { id: 'rute', name: 'RUTE Scanner', icon: Zap },
+                        { id: 'qr', name: 'Verify QR', icon: QrCode }
+                      ].map(mode => (
+                        <button 
+                          key={mode.id}
+                          onClick={() => { setScannerMode(mode.id as any); setIsScannerOpen(true); }}
+                          className="p-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition flex flex-col items-center gap-2 text-center group"
+                        >
+                           <mode.icon className="w-6 h-6 text-amber-300 group-hover:scale-110 transition-transform" />
+                           <span className="text-[10px] font-black uppercase tracking-wider">{mode.name}</span>
+                        </button>
+                      ))}
+                   </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                 <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Recent Inspection History</h4>
+                 <div className="space-y-3">
+                    {[
+                      { type: 'Exam', name: 'Unit 1 Science Test', score: '48/50', time: '1 hour ago' },
+                      { type: 'Activity', name: 'Math Worksheet #3', score: '95%', time: '3 hours ago' },
+                      { type: 'QR', name: 'DepEd Memo DO 003', score: 'Verified', time: 'Yesterday' }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                         <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-slate-400">
+                               {item.type === 'QR' ? <QrCode size={18} /> : <FileText size={18} />}
+                            </div>
+                            <div>
+                               <div className="text-xs font-black text-slate-800">{item.name}</div>
+                               <div className="text-[10px] text-slate-500 font-bold uppercase">{item.type} • {item.time}</div>
+                            </div>
+                         </div>
+                         <div className="text-xs font-black text-blue-700">{item.score}</div>
+                      </div>
+                    ))}
+                 </div>
+              </div>
+
+              <DoorCameraScanner 
+                isOpen={isScannerOpen} 
+                onClose={() => setIsScannerOpen(false)} 
+                mode={scannerMode}
+                onResult={(res) => {
+                   showNotification('success', `Scan complete! Result: ${res.score || res.status}`);
+                }}
+              />
+            </div>
+          )}
+
+          {/* Tab Content 4: Weekly DLL/ILAW */}
+          {activeTab === 'weekly_dll' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+               <div className="bg-gradient-to-r from-blue-700 to-indigo-800 p-8 rounded-3xl text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+                  <div className="space-y-3">
+                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/20">
+                        <Sparkles className="w-3 h-3 text-amber-300" /> SY 2026-2027 MATATAG Aligned
+                     </div>
+                     <h3 className="text-2xl font-black uppercase tracking-tight">Weekly DLL / ILAW Generator</h3>
+                     <p className="text-blue-100 text-xs max-w-md font-medium leading-relaxed">
+                        Automatically generate your weekly Daily Lesson Log (DLL) in the official 4-part ILAW format. Includes AI-created LAS activity sheets with QR codes for 4-day integration.
+                     </p>
+                  </div>
+                  <div className="flex flex-col gap-2 w-full md:w-auto">
+                     <div className="p-3 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-sm text-center">
+                        <p className="text-[9px] font-black uppercase text-blue-200 mb-1">Print Ready</p>
+                        <p className="text-xs font-black">A4 Landscape Format</p>
+                     </div>
+                  </div>
+               </div>
+
+               <ILAWGenerator />
+            </div>
+          )}
+
+          {/* Tab Content 5: Summative Hub */}
+          {activeTab === 'summative_hub' && (
+            <SummativeHub sectionName={activeSection.sectionName} gradeLevel={`Grade ${activeSection.gradeLevel}`} />
+          )}
+
+          {/* Tab Content 6: LIS Student Records (Old Summative) */}
           {activeTab === 'summative' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="flex items-center justify-between bg-amber-50/60 p-4 rounded-2xl border border-amber-200">
                 <div>
                   <h3 className="text-sm font-black text-amber-900">
-                    LIS Student Masterlist &amp; Summative Grades — {activeSection.sectionName}
+                    LIS Student Masterlist &amp; Records — {activeSection.sectionName}
                   </h3>
                   <p className="text-xs text-amber-800">
                     Enrolled students verified via LIS database. Only {activeSection.adviserName} and Master Creator can grade and view records.
@@ -496,12 +896,7 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
             </div>
           )}
 
-          {/* Tab Content 4: Document Manager */}
-          {activeTab === 'document_manager' && (
-            <DocumentManager sectionName={activeSection.sectionName} />
-          )}
-
-          {/* Tab Content 3: Activity Log */}
+          {/* Tab Content 7: Activity Log */}
           {activeTab === 'activity_log' && (
             <div className="space-y-6 animate-in fade-in duration-300">
               <div className="bg-stone-900 text-stone-200 p-5 rounded-2xl border border-stone-800 flex items-center justify-between">
@@ -542,40 +937,200 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
               </div>
             </div>
           )}
+
+          {/* Tab Content 8: Substitution Summary */}
+          {activeTab === 'substitution' && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <div className="bg-orange-50 p-6 rounded-3xl border-2 border-orange-200">
+                <h3 className="text-lg font-black text-orange-900 flex items-center gap-2 mb-2">
+                  <AlarmClock className="w-5 h-5" /> Summary of Assigned Substitution Tasks
+                </h3>
+                <p className="text-xs text-orange-800 font-bold">
+                  List of all classes where you have been chosen as a substitute teacher. All tasks start strictly at 7:30 AM.
+                </p>
+              </div>
+
+              {myPlans.length === 0 ? (
+                <div className="p-12 text-center bg-stone-50 rounded-3xl border border-dashed border-stone-300">
+                  <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />
+                  <p className="text-sm font-black text-stone-500">You have no active substitution assignments.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4">
+                  {myPlans.map(plan => (
+                    <div key={plan.id} className="bg-white p-6 rounded-3xl border-2 border-orange-100 shadow-sm hover:shadow-md transition group">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center font-black">
+                            {plan.subject.charAt(0)}
+                          </div>
+                          <div>
+                            <h4 className="text-base font-black text-stone-900">{plan.subject}</h4>
+                            <p className="text-[10px] text-stone-500 uppercase font-black tracking-widest">{plan.section} • {plan.date}</p>
+                          </div>
+                        </div>
+                        <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">ACTIVE</span>
+                      </div>
+                      
+                      <div className="p-4 bg-stone-50 rounded-2xl border border-stone-100 text-xs text-stone-700 italic line-clamp-3 mb-4">
+                        "{plan.content}"
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-stone-100">
+                        <div className="text-[10px] text-stone-500 font-bold">
+                          Assigned by: <span className="text-[#092B62]">{plan.assignedByName}</span>
+                        </div>
+                        <button className="px-4 py-2 bg-[#092B62] text-white text-[10px] font-black rounded-xl hover:bg-blue-900 transition flex items-center gap-2">
+                          <Eye className="w-3.5 h-3.5" /> PREVIEW FULL REPORT
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          {showChathead && <DoorChathead />}
         </div>
       ) : (
         /* Home Street View / Orderly Neighborhood House Doors */
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black text-[#092B62] uppercase tracking-wider flex items-center gap-2">
-              <Home className="w-4 h-4 text-amber-600" />
-              <span>LNNCHS Faculty Neighborhood &amp; Administration Doors ({visibleSections.length + 4} Total Doors)</span>
-            </h3>
-            <span className="text-xs text-stone-500 font-medium">Click "Door Guide &amp; Audio" for step-by-step multi-lingual assistance</span>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-black text-[#092B62] uppercase tracking-wider flex items-center gap-2">
+                <Home className="w-4 h-4 text-amber-600" />
+                <span>LNNCHS Faculty Neighborhood &amp; Administration Doors ({visibleSections.length + 7} Total Doors)</span>
+              </h3>
+              <p className="text-xs text-stone-500 font-medium">Three School Head Executive Doors, Registrar, Guidance, Non-Teaching, and Resident Advisers.</p>
+            </div>
+            <CebuanoVoiceGuide
+              compact
+              guideKey="welcome"
+              label="Audio Guide (Cebuano Male)"
+            />
           </div>
+
+          <CebuanoVoiceGuide
+            guideKey="principals"
+            label="Listen to Executive Office &amp; Faculty Neighborhood Audio Tour"
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              { id: 'admin-registrar', name: 'Registrar Office', role: 'Registrar', icon: FileSpreadsheet },
-              { id: 'admin-head', name: 'School Head Office', role: 'School Head', icon: Building },
-              { id: 'admin-guidance', name: 'Guidance Counseling', role: 'Guidance Counselor', icon: HeartPulse },
-              { id: 'admin-non-teaching', name: 'Non-Teaching Staff', role: 'Staff Support', icon: UserCheck }
+              // 1. THREE SCHOOL HEAD DOORS (SWAPPED TO FIRST LOCATION)
+              {
+                id: 'head-anisah',
+                name: "Ma'am Anisah (Principal III-A) Door",
+                role: 'Senior High School Executive Leadership & SIP',
+                icon: Building,
+                badge: 'School Head',
+                bannerColor: 'from-blue-700 via-indigo-800 to-blue-900',
+                btnColor: 'bg-blue-900 hover:bg-blue-950'
+              },
+              {
+                id: 'head-andot',
+                name: "Ma'am Joan J. Andot (Asst. Principal II) Door",
+                role: 'Asst. Principal II • Academic Programs & Scheduling',
+                icon: Award,
+                badge: 'Asst. Principal II',
+                bannerColor: 'from-emerald-700 via-teal-800 to-emerald-900',
+                btnColor: 'bg-emerald-900 hover:bg-emerald-950'
+              },
+              {
+                id: 'head-calibo',
+                name: 'Ma\'am Alma "Almazing" L. Calibo (Head Teacher) Door',
+                role: 'Head Teacher • Curriculum & ILAW Approval',
+                icon: BookOpen,
+                badge: 'Head Teacher',
+                bannerColor: 'from-amber-600 via-stone-800 to-amber-700',
+                btnColor: 'bg-amber-900 hover:bg-amber-950'
+              },
+              // 2. REGISTRAR OFFICE (COMES AFTER HEAD)
+              {
+                id: 'admin-registrar',
+                name: 'Registrar Office Door',
+                role: 'Registrar • LIS Enrollment & Official Records',
+                icon: FileSpreadsheet,
+                badge: 'Registrar',
+                bannerColor: 'from-slate-700 via-slate-800 to-slate-900',
+                btnColor: 'bg-slate-800 hover:bg-slate-950'
+              },
+              // 3. GUIDANCE COUNSELING
+              {
+                id: 'admin-guidance',
+                name: 'Guidance Counseling Office Door',
+                role: 'Guidance Counselor • Learner Well-Being',
+                icon: HeartPulse,
+                badge: 'Guidance',
+                bannerColor: 'from-rose-700 via-pink-800 to-rose-900',
+                btnColor: 'bg-rose-900 hover:bg-rose-950'
+              },
+              // 4. NON-TEACHING STAFF & A.O.
+              {
+                id: 'admin-non-teaching',
+                name: 'Non-Teaching Staff & A.O. (Ma\'am Dayan) Door',
+                role: 'Staff Support • Property, Inventory & HR Desk',
+                icon: UserCheck,
+                badge: 'Administrative Officer',
+                bannerColor: 'from-purple-700 via-indigo-800 to-purple-900',
+                btnColor: 'bg-purple-900 hover:bg-purple-950'
+              },
+              // 5. CO-ADVISER & SUBJECT TEACHERS
+              {
+                id: 'admin-co-adviser',
+                name: 'Co-Advisers & Subject Teachers Door',
+                role: 'Subject Faculty (Without Co-Adviser Overhead)',
+                icon: Users,
+                badge: 'Subject Teachers',
+                bannerColor: 'from-cyan-700 via-blue-800 to-cyan-900',
+                btnColor: 'bg-cyan-900 hover:bg-cyan-950'
+              }
             ].map(adminDoor => (
               <div key={adminDoor.id} className="group relative bg-gradient-to-b from-stone-50 via-white to-stone-100 rounded-3xl p-6 border-2 border-stone-300 shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-stone-600 via-stone-700 to-stone-800" />
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-stone-200 flex items-center justify-center text-stone-700">
-                    <adminDoor.icon className="w-6 h-6" />
+                <div className={`absolute top-0 left-0 right-0 h-3 bg-gradient-to-r ${adminDoor.bannerColor}`} />
+                <div>
+                  <div className="flex items-center justify-between mb-3 pt-1">
+                    <span className="px-2.5 py-0.5 rounded-full bg-stone-200 text-stone-800 text-[10px] font-black uppercase tracking-wider">
+                      {adminDoor.badge}
+                    </span>
+                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                      Door Active
+                    </span>
                   </div>
-                  <div>
-                    <h4 className="text-base font-black text-stone-900">{adminDoor.name}</h4>
-                    <p className="text-xs text-stone-500 font-medium">{adminDoor.role}</p>
+
+                  <div className="flex items-center gap-3.5 mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-700 shadow-xs">
+                      <adminDoor.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-black text-stone-900 leading-snug">{adminDoor.name}</h4>
+                      <p className="text-[11px] text-stone-500 font-medium">{adminDoor.role}</p>
+                    </div>
                   </div>
                 </div>
-                <button className="w-full py-3.5 bg-stone-800 hover:bg-stone-950 text-white rounded-2xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition cursor-pointer group-hover:scale-[1.02]">
-                  <DoorClosed className="w-4 h-4" />
-                  <span>Open {adminDoor.name} Door</span>
-                </button>
+
+                <div className="space-y-2">
+                  <button
+                    onClick={() => setPreviewDoorData({
+                      doorName: adminDoor.name,
+                      doorRole: adminDoor.role,
+                      gradeLevel: 'Executive Level',
+                      sectionName: adminDoor.badge
+                    })}
+                    className="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-900 border border-stone-300 rounded-xl text-xs font-black shadow-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-blue-700" />
+                    <span>👁️ Preview &amp; Download Results</span>
+                  </button>
+
+                  <button 
+                    onClick={() => setActiveAdminDoorId(adminDoor.id)}
+                    className={`w-full py-3 ${adminDoor.btnColor} text-white rounded-2xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition cursor-pointer group-hover:scale-[1.02]`}
+                  >
+                    <DoorClosed className="w-4 h-4 text-amber-300" />
+                    <span>Open {adminDoor.name}</span>
+                  </button>
+                </div>
               </div>
             ))}
             
@@ -625,21 +1180,49 @@ export const AdviserDoorsHome: React.FC<AdviserDoorsHomeProps> = ({ currentUser,
                     </div>
                   </div>
 
-                  {/* Creative Door Opener Button */}
-                  <button
-                    onClick={() => setSelectedSectionId(secId)}
-                    className="w-full py-3.5 bg-gradient-to-r from-[#092B62] via-blue-800 to-[#092B62] hover:from-blue-900 hover:to-stone-900 text-white rounded-2xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition cursor-pointer group-hover:scale-[1.02]"
-                  >
-                    <DoorClosed className="w-4 h-4 text-amber-300 group-hover:hidden" />
-                    <DoorOpen className="w-4 h-4 text-amber-300 hidden group-hover:block" />
-                    <span>Open {sec.sectionName} Door</span>
-                    <ChevronRight className="w-4 h-4 opacity-70" />
-                  </button>
+                  {/* Creative Door Opener & Preview Buttons */}
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setPreviewDoorData({
+                        doorName: sec.adviserName,
+                        doorRole: `Resident Adviser • Grade ${sec.gradeLevel} ${sec.sectionName}`,
+                        gradeLevel: `Grade ${sec.gradeLevel}`,
+                        sectionName: sec.sectionName
+                      })}
+                      className="w-full py-2 bg-[#092B62]/10 hover:bg-[#092B62]/20 text-[#092B62] border border-[#092B62]/30 rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-blue-800" />
+                      <span>👁️ Preview &amp; Download Results</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedSectionId(secId)}
+                      className="w-full py-3 bg-gradient-to-r from-[#092B62] via-blue-800 to-[#092B62] hover:from-blue-900 hover:to-stone-900 text-white rounded-2xl text-xs font-black shadow-md flex items-center justify-center gap-2 transition cursor-pointer group-hover:scale-[1.02]"
+                    >
+                      <DoorClosed className="w-4 h-4 text-amber-300 group-hover:hidden" />
+                      <DoorOpen className="w-4 h-4 text-amber-300 hidden group-hover:block" />
+                      <span>Open {sec.sectionName} Door</span>
+                      <ChevronRight className="w-4 h-4 opacity-70" />
+                    </button>
+                  </div>
                 </div>
               );
             })}
           </div>
         </div>
+      )}
+
+      {/* LNNCHS Door Result Preview & Download Modal */}
+      {previewDoorData && (
+        <LnnchsDoorResultPreviewModal
+          doorName={previewDoorData.doorName}
+          doorRole={previewDoorData.doorRole}
+          gradeLevel={previewDoorData.gradeLevel}
+          sectionName={previewDoorData.sectionName}
+          itemData={previewDoorData.itemData}
+          isOpen={true}
+          onClose={() => setPreviewDoorData(null)}
+        />
       )}
     </div>
   );

@@ -57,11 +57,12 @@ import {
   Copy
 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { LNNCHSTeacherLoadingSummaryDashboard } from './LNNCHSTeacherLoadingSummaryDashboard';
 
 export const LNNCHSSHSFacultyAndExamsModule: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    'shs_loading' | 'jhs_loading' | 'sub_finder' | 'quick_sub_generator' | 'class_programs' | 'interventions' | 'rute_exam' | 'life_career_exam' | 'bubble_sheet'
-  >('shs_loading');
+    'master_summary' | 'shs_loading' | 'jhs_loading' | 'sub_finder' | 'quick_sub_generator' | 'class_programs' | 'interventions' | 'rute_exam' | 'life_career_exam' | 'bubble_sheet'
+  >('master_summary');
 
   const [absentReason, setAbsentReason] = useState<string>('Sick Leave / Medical Emergency');
   const [subCopiedText, setSubCopiedText] = useState<boolean>(false);
@@ -76,7 +77,7 @@ export const LNNCHSSHSFacultyAndExamsModule: React.FC = () => {
   const [jhsTeacherSearch, setJhsTeacherSearch] = useState<string>('');
 
   // --- Substitute / Vacant Teacher Finder ("Pag Sub og Teacher") States ---
-  const [subSelectedTimeSlot, setSubSelectedTimeSlot] = useState<string>('08:30-09:30');
+  const [subSelectedTimeSlot, setSubSelectedTimeSlot] = useState<string>('07:30-08:30');
   const [subSelectedDay, setSubSelectedDay] = useState<string>('M'); // 'M', 'T', 'W', 'Th', 'F'
   const [subLevelFilter, setSubLevelFilter] = useState<'ALL' | 'JHS' | 'SHS'>('ALL');
   const [subDeptFilter, setSubDeptFilter] = useState<string>('ALL');
@@ -103,10 +104,10 @@ export const LNNCHSSHSFacultyAndExamsModule: React.FC = () => {
   const [batchAbsentDate, setBatchAbsentDate] = useState<string>('September 25, 2026 — Thursday');
   const [batchAbsentTeachersInput, setBatchAbsentTeachersInput] = useState<string>('1. R. Pawaden\n2. M. Tabacon');
   const [batchAssignedMap, setBatchAssignedMap] = useState<{ [key: string]: string }>({
-    '8:30-9:30': 'M. ARABA',
-    '10:45-11:45': 'J. ARQUITA',
-    '12:45-1:45': 'T. TUASTOMBAN',
-    '1:45-2:45': 'M. ARABA'
+    '7:30-8:30': 'M. ARABA',
+    '8:30-9:30': 'J. ARQUITA',
+    '10:45-11:45': 'T. TUASTOMBAN',
+    '12:45-1:45': 'M. ARABA'
   });
   const [showBatchSummaryModal, setShowBatchSummaryModal] = useState<boolean>(false);
 
@@ -214,7 +215,7 @@ export const LNNCHSSHSFacultyAndExamsModule: React.FC = () => {
     {
       id: 'SUB-2026-001',
       date: '2026-09-24',
-      timeSlot: '08:30-09:30',
+      timeSlot: '07:30-08:30',
       day: 'Monday',
       subTeacherName: 'JEMMA B. ABAQUITA',
       subLevel: 'JHS',
@@ -355,8 +356,8 @@ export const LNNCHSSHSFacultyAndExamsModule: React.FC = () => {
   // SHS Teachers schedule check (sample heuristics based on 30-period load)
   const vacantShsTeachers = LNNCHS_SHS_TEACHER_LOADINGS.map(t => {
     // SHS teachers with lower loads or specific non-conflicting time slots
-    const isOccupied = (t.periodsRegular > 25 && subSelectedTimeSlot === '08:30-09:30') ||
-                       (t.periodsRegular > 27 && subSelectedTimeSlot === '09:45-10:45');
+    const isOccupied = (t.periodsRegular > 25 && subSelectedTimeSlot === '07:30-08:30') ||
+                       (t.periodsRegular > 27 && subSelectedTimeSlot === '08:30-09:30');
     return {
       level: 'SHS',
       name: t.name,

@@ -159,13 +159,18 @@
   /* 5. Force text colors for readability */
   .text-blue-900, 
   .text-blue-700, 
-  .text-[#002776] {
+  .text-\[\#002776\] {
     color: #000 !important;
   }
 
   /* Avoid breaking inside tables */
   tr, td, th {
     page-break-inside: avoid !important;
+  }
+
+  .page-break {
+    page-break-after: always !important;
+    break-after: page !important;
   }
 
   h1, h2, h3, h4 {

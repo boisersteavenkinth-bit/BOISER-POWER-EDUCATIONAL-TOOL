@@ -14,6 +14,9 @@ import {
   Layers,
   Info
 } from 'lucide-react';
+import { LNNCHSTeacherLoadingSummaryDashboard } from './LNNCHSTeacherLoadingSummaryDashboard';
+import { LnnchsDoorResultPreviewModal } from './LnnchsDoorResultPreviewModal';
+import { Eye } from 'lucide-react';
 
 interface BlankTemplateConfig {
   schoolId: string;
@@ -31,6 +34,7 @@ interface BlankTemplateConfig {
 
 export const LNNCHSBlankTemplatesModule: React.FC = () => {
   const [selectedForm, setSelectedForm] = useState<string>('SF1');
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [config, setConfig] = useState<BlankTemplateConfig>({
     schoolId: '304005',
     schoolName: 'Lanao del Norte National Comprehensive High School (LNNCHS)',
@@ -56,7 +60,8 @@ export const LNNCHSBlankTemplatesModule: React.FC = () => {
     { id: 'SF8', name: 'School Form 8 (SF8)', title: 'Learner Basic Health and Nutritional Status', desc: 'Baseline and endline BMI, height, weight, and nutritional classification form.' },
     { id: 'SF9', name: 'School Form 9 (SF9)', title: 'Learner Progress Report Card (Form 138)', desc: 'Official 3-Term quarterly report card with learning areas, attendance, and core values.' },
     { id: 'SF10', name: 'School Form 10 (SF10)', title: 'Learner Permanent Academic Record (Form 137)', desc: 'Complete multi-year permanent transcript of scholastic records and certification.' },
-    { id: 'ECR_BLANK', name: 'Blank ECR (Electronic Class Record)', title: 'DepEd 3-Term Electronic Class Record', desc: 'Standard numerical grade sheet with Term 1, Term 2, Term 3 quarterly scores and final rating columns.' }
+    { id: 'ECR_BLANK', name: 'Blank ECR (Electronic Class Record)', title: 'DepEd 3-Term Electronic Class Record', desc: 'Standard numerical grade sheet with Term 1, Term 2, Term 3 quarterly scores and final rating columns.' },
+    { id: 'TEACHER_LOADING_SUMMARY', name: 'Teacher Class Loading Dashboard', title: 'Summary of Teacher Class Loading (JHS vs SHS, Academic vs TechPro)', desc: 'Official LNNCHS Master Teacher Loading Dashboard with separate views for Junior High School, Senior High School Academic Track, TechPro (TVL) Track, and Teacher Programs.' }
   ];
 
   const handlePrint = () => {
@@ -123,6 +128,13 @@ export const LNNCHSBlankTemplatesModule: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setIsPreviewOpen(true)}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-stone-950 font-black rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md transition cursor-pointer hover:brightness-110"
+            >
+              <Eye className="w-4 h-4 text-stone-950" />
+              <span>👁️ Preview Summary &amp; Downloads (.docx, .pptx, .xlsx, .pdf)</span>
+            </button>
             <button
               onClick={handlePrint}
               className="px-4 py-2.5 bg-white text-blue-950 hover:bg-stone-100 font-bold rounded-xl text-xs sm:text-sm flex items-center gap-2 shadow-md transition cursor-pointer"
@@ -285,6 +297,12 @@ export const LNNCHSBlankTemplatesModule: React.FC = () => {
           </div>
 
           {/* ================= BLANK TABLES BASED ON SELECTED FORM ================= */}
+          {selectedForm === 'TEACHER_LOADING_SUMMARY' && (
+            <div className="py-2">
+              <LNNCHSTeacherLoadingSummaryDashboard />
+            </div>
+          )}
+
           {selectedForm === 'SF1' && (
             <div className="overflow-x-auto border border-stone-300 rounded-lg">
               <table className="w-full text-left text-xs border-collapse">
@@ -454,6 +472,23 @@ export const LNNCHSBlankTemplatesModule: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Preview for Selected Blank Template */}
+      {isPreviewOpen && (
+        <LnnchsDoorResultPreviewModal
+          itemData={{
+            title: `Blank Template ${selectedForm} Master Sheet`,
+            code: selectedForm,
+            category: 'Blank School Form Template',
+            description: `Formatted empty official DepEd Region X / LNNCHS School Form template (${config.rowCount} blank rows).`,
+            gradeLevel: config.gradeLevel,
+            sectionName: config.section,
+            adviserName: config.adviser
+          }}
+          isOpen={true}
+          onClose={() => setIsPreviewOpen(false)}
+        />
+      )}
     </div>
   );
 };

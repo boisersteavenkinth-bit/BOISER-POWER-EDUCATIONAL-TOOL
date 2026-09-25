@@ -260,5 +260,205 @@ export const LNNCHS_OFFICIAL_DOCUMENTS: OfficialDocumentItem[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'doc-dm-299-2026',
+    code: 'DM No. 299, s. 2026',
+    title: 'Division Memorandum No. 299, s. 2026: Handog ng Pangulo in partnership with PhilHealth and the Philippine Statistics Authority',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['All Students & Faculty'],
+    summary: 'Inter-agency initiative for Handog ng Pangulo providing PhilHealth registration and PSA birth certificate processing for learners and personnel.',
+    keywords: ['handog ng pangulo', 'philhealth', 'psa', 'philippine statistics authority', 'dm 299'],
+    fullSections: [
+      {
+        heading: 'Program Implementation',
+        content: 'Provides free PSA registration and PhilHealth enrollment for learners and teaching/non-teaching personnel in collaboration with partner agencies.',
+        keyPoints: ['Partnership with PhilHealth and PSA', 'Covers learners and DepEd personnel', 'Facilitated through school health and registrar units']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-298-2026',
+    code: 'DM No. 298, s. 2026',
+    title: 'Division Memorandum No. 298, s. 2026: Gulayan sa Paaralan and Integrated School Nutrition Model Implementing Guidelines, SY 2026–2027',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['School Gardening & Feeding Program Coordinators'],
+    summary: 'Establishes updated implementing guidelines for Gulayan sa Paaralan Program (GPP) and Integrated School Nutrition Model for SY 2026–2027.',
+    keywords: ['gulayan sa paaralan', 'gpp', 'school nutrition', 'feeding program', 'dm 298'],
+    fullSections: [
+      {
+        heading: 'GPP Guidelines',
+        content: 'Directs all public secondary schools to establish bio-intensive gardens and link crop yields to the SBFP school feeding initiatives.',
+        keyPoints: ['Bio-intensive organic gardening', 'Supports SBFP feeding program', 'Promotes nutritional awareness among learners']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-297-2026',
+    code: 'DM No. 297, s. 2026',
+    title: 'Division Memorandum No. 297, s. 2026: Conduct of Initial Evaluation Result (KER) and Comparative Assessment Result for Expanded Reclassification (CAReER) for Higher Teaching Positions',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office - HRMO',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['All Teaching Staff & Applicants'],
+    summary: 'Announces the evaluation and comparative assessment results (KER/CAReER) for higher teaching position reclassification under the Expanded Career Progression System.',
+    keywords: ['ker', 'career', 'comparative assessment', 'reclassification', 'higher teaching positions', 'dm 297'],
+    fullSections: [
+      {
+        heading: 'CAReER Evaluation',
+        content: 'Publishes evaluation matrices for qualified applicants aspiring for Master Teacher and Senior High School promotion under ECPS.',
+        keyPoints: ['Transparency in reclassification', 'Covers Master Teacher I-IV applicants', 'Includes appeal and validation period']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-296-2026',
+    code: 'DM No. 296, s. 2026',
+    title: 'Division Memorandum No. 296, s. 2026: Division Election Committee (CAReER) for Higher Teaching Positions',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['Division Screening & Assessment Board'],
+    summary: 'Designates the composition and duties of the Division Election and Assessment Committee for higher teaching position promotion evaluations.',
+    keywords: ['election committee', 'career', 'higher teaching positions', 'dm 296'],
+    fullSections: [
+      {
+        heading: 'Committee Composition',
+        content: 'Outlines official members including Assistant Schools Division Superintendent, HR Personnel, and Division EPS representatives.',
+        keyPoints: ['Formulates evaluation schedules', 'Oversees ranking and verification', 'Ensures compliance with Civil Service Commission standards']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-295-2026',
+    code: 'DM No. 295, s. 2026',
+    title: 'Division Memorandum No. 295, s. 2026: Induction Program for Beginning Teachers (Batch 2) cum Onboarding of Newly-Hired Non-Teaching Personnel',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office - HRDD',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['Newly Hired Teachers & Non-Teaching Staff'],
+    summary: 'Conduct of Teacher Induction Program (TIP) Batch 2 and onboarding orientation for newly-appointed non-teaching personnel.',
+    keywords: ['tip', 'teacher induction program', 'onboarding', 'newly hired teachers', 'dm 295'],
+    fullSections: [
+      {
+        heading: 'Induction Schedule & Modules',
+        content: 'Provides mandatory courseware and mentoring schedules for newly deployed educators and non-teaching support staff.',
+        keyPoints: ['PPST Module alignment', 'Mentoring by Master Teachers', 'Attendance and completion requirements']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-294-2026',
+    code: 'DM No. 294, s. 2026',
+    title: 'Division Memorandum No. 294, s. 2026: Submission of data on schools with LRP desks, LEO designates, and localized anti-bullying policies per district',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office - Legal & CPC Unit',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['School Child Protection Committees & Guidance Office'],
+    summary: 'Requires submission of localized anti-bullying policy updates, Learner Rights Protection (LRP) desk rosters, and Legal Education Officer (LEO) designations.',
+    keywords: ['lrp desks', 'leo designates', 'anti-bullying policy', 'child protection', 'dm 294'],
+    fullSections: [
+      {
+        heading: 'Compliance Submission',
+        content: 'Directs all school heads to submit verified templates on Child Protection Committee personnel and anti-bullying monitoring desks.',
+        keyPoints: ['Mandatory compliance under RA 10627', 'Updated LRP desk contact info', 'District consolidation deadline']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-293-2026',
+    code: 'DM No. 293, s. 2026',
+    title: 'Division Memorandum No. 293, s. 2026: Participation for School-Based Immunization (SBI) Microplanning Workshop',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office - Health & Nutrition Unit',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['School Clinic & Health Coordinators'],
+    summary: 'Designates health personnel to attend the microplanning workshop for School-Based Immunization (SBI) program roll-out in partnership with DOH.',
+    keywords: ['sbi', 'school-based immunization', 'microplanning workshop', 'health clinic', 'dm 293'],
+    fullSections: [
+      {
+        heading: 'Workshop Details',
+        content: 'Strategic session for target learner coverage, parental consent verification, and vaccine cold-chain logistics.',
+        keyPoints: ['DOH and DepEd Health collaboration', 'Parental consent requirement', 'Schedule of immunization drives']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-292-2026',
+    code: 'DM No. 292, s. 2026',
+    title: "Division Memorandum No. 292, s. 2026: DepEd Learners' Convergence 2026",
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office - Youth Formation',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['SSLG Officers, Youth Leaders, and Advisers'],
+    summary: 'Gathering of student leaders, SSLG officers, and youth formation advisers for leadership development, digital literacy, and civic engagement.',
+    keywords: ['learners convergence', 'youth formation', 'sslg', 'student leadership', 'dm 292'],
+    fullSections: [
+      {
+        heading: 'Convergence Framework',
+        content: 'Provides instructions for delegation selection, parental consent, and student leadership workshop strands.',
+        keyPoints: ['SSLG and Youth Club participation', 'Leadership & digital citizenship topics', 'Safety and travel protocols']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-291a-2026',
+    code: 'DM No. 291-A, s. 2026',
+    title: 'Division Memorandum No. 291-A, s. 2026: Registration of Authorized Processors for the Online Certification, Authentication and Verification Application System (OCAVAS)',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office - Records Section',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['School Registrar & Records Officers'],
+    summary: 'Guidelines for designating and registering official school records personnel into the OCAVAS digital verification platform.',
+    keywords: ['ocavas', 'certification authentication verification', 'records officer', 'school registrar', 'dm 291-a'],
+    fullSections: [
+      {
+        heading: 'OCAVAS User Registration',
+        content: 'Ensures secure credentialing for authorized encoders handling transcript verification and diploma authentication.',
+        keyPoints: ['Online CAV processing', 'Encrypted portal access', 'User security compliance']
+      }
+    ]
+  },
+  {
+    id: 'doc-dm-290b-2026',
+    code: 'DM No. 290-B, s. 2026',
+    title: 'Division Memorandum No. 290-B, s. 2026: Khan Academy Orientation Module 2 – Reimagining Teaching with Khan Academy: Hands-on Technical Training for KHANDO Teachers',
+    category: 'Division Memorandum',
+    issuer: 'DepEd Schools Division Office - CID / ICT',
+    dateIssued: 'September 24, 2026',
+    schoolYear: '2026-2027',
+    applicableGrades: ['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'],
+    applicableSections: ['Math & Science Faculty, ICT Coordinators'],
+    summary: 'Hands-on technical orientation and training for educators on using Khan Academy platform and Khanmigo AI teaching assistants.',
+    keywords: ['khan academy', 'khando teachers', 'digital learning', 'ict training', 'dm 290-b'],
+    fullSections: [
+      {
+        heading: 'Training Mechanics',
+        content: 'Module 2 technical walkthrough on classroom creation, skill mastery tracking, and blended learning integration.',
+        keyPoints: ['Khan Academy platform setup', 'Differentiated math/science learning', 'Teacher dashboard navigation']
+      }
+    ]
   }
 ];

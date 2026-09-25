@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 import chatbotData from '../../chatbot.json';
+import { CURRICULUM_SOURCES } from '../data/curriculumData';
 
 type BotState = 'idle' | 'thinking' | 'speaking' | 'happy';
 
@@ -346,8 +347,7 @@ export const AnimatedLocalLLMBot: React.FC = () => {
           prompt,
           model: selectedModel,
           provider: providerChoice,
-          systemPrompt:
-            'You are the animated DepEd Region X Local LLM Pedagogical Assistant. You provide high-quality instructional, curriculum (DO 009 & 015 s. 2026), lesson planning, and encouraging responses.'
+          systemPrompt: `You are the animated DepEd Region X Local LLM Pedagogical Assistant with access to ALL official information sources, curriculum databases, PDF guidelines (ISEF, ERF, UCSP), LNNCHS 120-section directory, DepEd Order No. 3 s. 2026 Three-Term Calendar & ILAW lesson planning framework, SF1-SF10 grading rules, 15-sheet grading engines, and teacher class loadings. Sources loaded: ${JSON.stringify(CURRICULUM_SOURCES)}`
         })
       });
 

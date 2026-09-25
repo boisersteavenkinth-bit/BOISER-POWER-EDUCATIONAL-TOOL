@@ -13,30 +13,27 @@ import {
   Heart,
   Award
 } from 'lucide-react';
+import { speakWithCebuanoMaleVoice, stopCebuanoMaleVoice } from '../services/boiserVoiceService';
 
 export const BoiserPosterGuideBanner: React.FC = () => {
   const [lang, setLang] = useState<'en' | 'tl' | 'ceb'>('en');
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const speakPoster = (text: string) => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (lang === 'tl') utterance.lang = 'fil-PH';
-    else if (lang === 'ceb') utterance.lang = 'ceb-PH';
-    else utterance.lang = 'en-US';
-    utterance.rate = 0.95;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+    speakWithCebuanoMaleVoice(text, {
+      appendTagline: true,
+      rate: 0.88,
+      pitch: 0.86,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false)
+    });
   };
 
   const stopPosterSpeech = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
+    stopCebuanoMaleVoice();
+    setIsSpeaking(false);
   };
 
   const content = {

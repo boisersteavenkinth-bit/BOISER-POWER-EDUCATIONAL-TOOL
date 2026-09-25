@@ -36,6 +36,9 @@ import {
 import { LNNCHS_20_SECTIONS_PER_GRADE, CONSOLIDATED_LIS_STUDENTS, SectionDefinition, LISStudentMasterRecord } from '../data/lnnchsCompleteSectionsDirectory';
 import { SectionManager } from './SectionManager';
 import { AdviserDoorsHome } from './AdviserDoorsHome';
+import { MasterCreatorSkillsVault } from './MasterCreatorSkillsVault';
+import { speakWithCebuanoMaleVoice, stopCebuanoMaleVoice } from '../services/boiserVoiceService';
+import { triggerSuspiciousActivityAndLogout } from '../services/securityAlertService';
 
 interface BoisertEmpirePortalProps {
   onNavigateTab: (tab: string) => void;
@@ -124,37 +127,30 @@ export const BoisertEmpirePortal: React.FC<BoisertEmpirePortalProps> = ({ onNavi
   const [audioLang, setAudioLang] = useState<'en' | 'tl' | 'ceb'>('en');
   const [isSpeaking, setIsSpeaking] = useState(false);
 
-  const speakText = (text: string, lang: 'en' | 'tl' | 'ceb') => {
-    if (!('speechSynthesis' in window)) {
-      alert('Speech Synthesis not supported in this browser.');
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    if (lang === 'tl') {
-      utterance.lang = 'fil-PH';
-    } else if (lang === 'ceb') {
-      utterance.lang = 'ceb-PH';
-    } else {
-      utterance.lang = 'en-US';
-    }
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+  const speakText = (text: string, _lang: 'en' | 'tl' | 'ceb') => {
+    setIsSpeaking(true);
+    speakWithCebuanoMaleVoice(text, {
+      appendTagline: true,
+      rate: 0.88,
+      pitch: 0.86,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false)
+    });
   };
 
   const stopSpeech = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
+    stopCebuanoMaleVoice();
+    setIsSpeaking(false);
   };
 
   const triggerAntiBreachSecurity = (reason: string) => {
-    alert(`🚨 SECURITY BREACH DETECTED: ${reason}\n\nUnder LNNCHS Data Governance & Master Creator Security Protocol, unauthorized source inspection, tampering, or data destruction attempts result in immediate revocation of access.`);
+    triggerSuspiciousActivityAndLogout(
+      'unauthorized_door_visitor@lnnchs.deped.gov.ph',
+      'Door Visitor',
+      reason,
+      'MASTER_DOOR_BREACH'
+    );
     setAuthStep('locked_out');
   };
 
@@ -876,6 +872,9 @@ export const BoisertEmpirePortal: React.FC<BoisertEmpirePortalProps> = ({ onNavi
               <span className="text-[11px] text-stone-600 font-bold">Steaven Kinth D. Boiser</span>
             </div>
           </div>
+
+          {/* Steaven Kinth D. Boiser Exclusive Master Creator Skills Vault */}
+          <MasterCreatorSkillsVault />
 
           {/* Door-to-Door Teacher Telemetry & Password Vault */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-stone-200 space-y-6">

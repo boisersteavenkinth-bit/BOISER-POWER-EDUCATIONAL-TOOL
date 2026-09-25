@@ -1,26 +1,26 @@
 import React, { useState } from 'react';
 import { Sparkles, ShieldCheck, Award, Volume2, VolumeX, Building, GraduationCap } from 'lucide-react';
+import { speakWithCebuanoMaleVoice, stopCebuanoMaleVoice } from '../services/boiserVoiceService';
 
 export const BoiserEmpireTaglineHeader: React.FC = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   const speakTagline = () => {
-    if (!('speechSynthesis' in window)) return;
-    window.speechSynthesis.cancel();
-    const text = "Welcome to LNNCHS and Division Wide Boiser Empire System. B.O.I.S.E.R.: Building Organizational Intelligence for Sustainable Educational Results.";
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.onstart = () => setIsSpeaking(true);
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => setIsSpeaking(false);
-    window.speechSynthesis.speak(utterance);
+    setIsSpeaking(true);
+    const text = "Maayong adlaw sa tanan! With utmost respect and humility, welcome to LNNCHS and Division Wide Boiser Empire System. B.O.I.S.E.R.: Building Organizational Intelligence for Sustainable Educational Results.";
+    speakWithCebuanoMaleVoice(text, {
+      appendTagline: true,
+      rate: 0.88,
+      pitch: 0.86,
+      onStart: () => setIsSpeaking(true),
+      onEnd: () => setIsSpeaking(false),
+      onError: () => setIsSpeaking(false)
+    });
   };
 
   const stopTagline = () => {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
+    stopCebuanoMaleVoice();
+    setIsSpeaking(false);
   };
 
   return (

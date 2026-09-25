@@ -21,7 +21,8 @@ import {
   ChevronDown,
   Layers,
   X,
-  Compass
+  Compass,
+  Tv
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { LiveClockCalendar } from './LiveClockCalendar';
@@ -53,7 +54,8 @@ export type ActiveTab =
   | 'curriculum-db'
   | 'science-math-db'
   | 'research-intelligence'
-  | 'data-governance';
+  | 'data-governance'
+  | 'action-research';
 
 export type NavGroup = 'home' | 'curriculum' | 'research' | 'generator' | 'grading' | 'system';
 
@@ -62,6 +64,7 @@ interface HeaderProps {
   setActiveTab: (tab: ActiveTab) => void;
   totalCompetencies: number;
   verifiedCount: number;
+  onOpenTVTour?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -69,11 +72,14 @@ export const Header: React.FC<HeaderProps> = ({
   setActiveTab,
   totalCompetencies,
   verifiedCount,
+  onOpenTVTour,
 }) => {
   const { currentUser, isOwner, securityAlerts, activeLogoUrl } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeGroup, setActiveGroup] = useState<NavGroup>('home');
+
+  const isMasterCreator = isOwner || currentUser?.email === 'boisersteavenkinth@gmail.com';
 
   const allTools = [
     { id: 'home' as ActiveTab, group: 'home' as NavGroup, label: 'Dashboard Home', icon: Home, desc: 'Central overview & quick launcher' },
@@ -81,6 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'curriculum-db' as ActiveTab, group: 'curriculum' as NavGroup, label: 'Curriculum DB (Versioned)', icon: BookOpen, highlight: 'MATATAG 2026', desc: 'Version-controlled curriculum' },
     { id: 'science-math-db' as ActiveTab, group: 'research' as NavGroup, label: 'Science & Math DB', icon: Layers, highlight: 'STEM Skills', desc: 'Inquiry & reasoning maps' },
     { id: 'research-intelligence' as ActiveTab, group: 'research' as NavGroup, label: 'Research Intelligence', icon: GraduationCap, highlight: '15-Yr RRL & RRS', desc: 'Action research & STF builder' },
+    { id: 'action-research' as ActiveTab, group: 'research' as NavGroup, label: 'Master Action Research', icon: GraduationCap, highlight: 'Master Creator', desc: 'Detailed Action Research & Concurrency Dossier' },
     { id: 'data-governance' as ActiveTab, group: 'system' as NavGroup, label: 'Data Governance & Sync', icon: ShieldCheck, highlight: 'Offline Sync', desc: 'Source provenance & audit logs' },
 
     { id: 'grade11-bow' as ActiveTab, group: 'curriculum' as NavGroup, label: 'Grade 11 Three-Term BOW', icon: BookOpen, highlight: 'Strengthened SHS', desc: 'Trimester distribution (DO 009)' },
@@ -102,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
     { id: 'canva-bridge' as ActiveTab, group: 'grading' as NavGroup, label: 'Canva Bridge', icon: Presentation, desc: 'Visual slide & deck exporter' },
 
     { id: 'connectors' as ActiveTab, group: 'system' as NavGroup, label: 'Connectors Hub', icon: Cable, highlight: 'Gmail • Whisper • LLM', desc: 'Decoupled system connectors' },
-    { id: 'admin-dashboard' as ActiveTab, group: 'system' as NavGroup, label: 'Admin & Security', icon: ShieldAlert, badge: securityAlerts.length > 0 ? securityAlerts.length : undefined, desc: 'Owner admin console' },
+    ...(isMasterCreator ? [{ id: 'admin-dashboard' as ActiveTab, group: 'system' as NavGroup, label: 'Admin & Security', icon: ShieldAlert, badge: securityAlerts.length > 0 ? securityAlerts.length : undefined, desc: 'Owner admin console' }] : [])
   ];
 
   const primaryGroups = [
@@ -153,6 +160,16 @@ export const Header: React.FC<HeaderProps> = ({
 
           <div className="flex items-center gap-2.5 text-[11px]">
             <LiveClockCalendar />
+            {onOpenTVTour && (
+              <button
+                onClick={onOpenTVTour}
+                className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-amber-400 to-yellow-500 hover:from-amber-300 hover:to-yellow-400 text-slate-950 font-black border border-amber-300 transition flex items-center gap-1.5 cursor-pointer shadow-sm animate-pulse"
+                title="Launch Creative 4K TV Tour Guide & Tutor"
+              >
+                <Tv className="w-3.5 h-3.5 text-slate-950" />
+                <span>📺 4K TV Tour</span>
+              </button>
+            )}
             <button
               onClick={() => setIsSearchOpen(true)}
               className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold border border-white/20 transition flex items-center gap-1.5 cursor-pointer"
@@ -160,17 +177,15 @@ export const Header: React.FC<HeaderProps> = ({
               <Search className="w-3.5 h-3.5 text-[#FCD116]" />
               <span>Search Tools...</span>
             </button>
-            <button
-              onClick={() => setActiveTab('admin-dashboard')}
-              title="View Owner Admin & Security Console"
-              className={`px-2.5 py-0.5 rounded-md font-extrabold border shadow-sm transition flex items-center gap-1.5 cursor-pointer ${
-                isOwner
-                  ? 'bg-gradient-to-r from-[#FCD116] to-amber-400 text-[#002776] border-yellow-300 hover:brightness-110'
-                  : 'bg-white/15 text-stone-200 border-white/20 hover:bg-white/25'
-              }`}
-            >
-              <span>{isOwner ? '👑 Owner: S. Boiser' : '👤 User Mode'}</span>
-            </button>
+            {isMasterCreator && (
+              <button
+                onClick={() => setActiveTab('admin-dashboard')}
+                title="View Owner Admin & Security Console"
+                className="px-2.5 py-0.5 rounded-md font-extrabold border shadow-sm transition flex items-center gap-1.5 cursor-pointer bg-gradient-to-r from-[#FCD116] to-amber-400 text-[#002776] border-yellow-300 hover:brightness-110"
+              >
+                <span>👑 Master Creator: S. Boiser</span>
+              </button>
+            )}
             <span className="px-2.5 py-0.5 rounded-md bg-[#CE1126] text-white font-extrabold border-t border-red-400 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
               Region X Standard
             </span>

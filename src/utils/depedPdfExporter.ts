@@ -785,7 +785,11 @@ export async function exportBatchDepEdRegionXPDF(
  * High-Fidelity DepEd DO 3, s. 2026 Compliant PDF Exporter
  * Generates the complete 4-part ILAW (Header, Matrix, LAS, Rubrics, Signatures)
  */
-export async function exportDO3ILAWToPdf(plan: import('../types/ilawDO3').ILAWCompletePlan, fileName?: string): Promise<void> {
+export async function exportDO3ILAWToPdf(
+  plan: import('../types/ilawDO3').ILAWCompletePlan, 
+  fileName?: string,
+  orientation: 'portrait' | 'landscape' = 'portrait'
+): Promise<void> {
   if (!depedLogoBase64) {
     depedLogoBase64 = await loadImageAsBase64('/deped-logo.png');
   }
@@ -793,9 +797,9 @@ export async function exportDO3ILAWToPdf(plan: import('../types/ilawDO3').ILAWCo
     lnnchsLogoBase64 = await loadImageAsBase64('/lnnchs-logo.png');
   }
 
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const pageWidth = 210;
-  const pageHeight = 297;
+  const doc = new jsPDF({ orientation: orientation, unit: 'mm', format: 'a4' });
+  const pageWidth = orientation === 'portrait' ? 210 : 297;
+  const pageHeight = orientation === 'portrait' ? 297 : 210;
   const marginX = 14;
   const contentWidth = pageWidth - marginX * 2; // 182mm
 

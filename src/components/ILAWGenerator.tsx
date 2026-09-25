@@ -483,6 +483,12 @@ export const ILAWGenerator: React.FC<ILAWGeneratorProps> = ({
   const [resources, setResources] = useState<string>('DepEd Strengthened SHS BOW (SY 2026–2027), Learner Materials, Boiser Power Tools, Canva & Figma Exemplars.');
   const [integration, setIntegration] = useState<string>('STEM linkages, TechPro Career readiness, Critical Thinking, Ethical Digital Citizenship.');
 
+  // LAS Specific States
+  const [lasBgState, setLasBgState] = useState<string>('');
+  const [lasA1State, setLasA1State] = useState<string>('');
+  const [lasA2State, setLasA2State] = useState<string>('');
+  const [lasA3State, setLasA3State] = useState<string>('');
+
   // UI state
   const [viewMode, setViewMode] = useState<'do3' | 'four_day' | 'ilaw' | 'las' | 'svg' | 'assets'>('four_day');
   const [directResultMode, setDirectResultMode] = useState<boolean>(true);
@@ -2639,6 +2645,31 @@ Document Code: DEPED-ROX-LDN-ILAW-2026 | Verified Official Record | Quality Assu
             </div>
             <div className="flex items-center gap-2">
               <button
+                onClick={async () => {
+                  setIsGeneratingDO3(true);
+                  await new Promise(r => setTimeout(r, 1000));
+                  
+                  const bg = activeBOWEntry?.lasBg || `[GENERATED] ${activeBOWEntry?.topic} covers the core concepts of ${activeBOWEntry?.learningCompetency.toLowerCase()}.`;
+                  const a1 = activeBOWEntry?.lasA1 || `[GENERATED] Task 1: Identify the primary components of ${activeBOWEntry?.topic} and explain their function.`;
+                  const a2 = activeBOWEntry?.lasA2 || `[GENERATED] Task 2: Apply ${activeBOWEntry?.topic} to solve a practical scenario in your community.`;
+                  const a3 = activeBOWEntry?.lasA3 || `[GENERATED] Task 3: Evaluate the impact of ${activeBOWEntry?.topic} on 21st-century learners.`;
+                  
+                  setLasBgState(bg);
+                  setLasA1State(a1);
+                  setLasA2State(a2);
+                  setLasA3State(a3);
+                  
+                  setPdfSuccessMessage('✓ LAS Content generated based on MELCs/BOW integration!');
+                  setIsGeneratingDO3(false);
+                  setTimeout(() => setPdfSuccessMessage(null), 3000);
+                }}
+                disabled={isGeneratingDO3}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-stone-950 text-xs font-black transition shadow-xs cursor-pointer disabled:opacity-50"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Auto-Fill LAS Content</span>
+              </button>
+              <button
                 onClick={() => handleExportPDF('las')}
                 disabled={isExportingPDF}
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition shadow-xs cursor-pointer disabled:opacity-50"
@@ -2705,7 +2736,7 @@ Document Code: DEPED-ROX-LDN-ILAW-2026 | Verified Official Record | Quality Assu
                 I. Background Information for Learners
               </h3>
               <p className="text-stone-800 leading-relaxed text-justify">
-                {activeEntry?.lasBg || contentStandard}
+                {lasBgState || activeEntry?.lasBg || contentStandard}
               </p>
             </div>
 
@@ -2714,7 +2745,7 @@ Document Code: DEPED-ROX-LDN-ILAW-2026 | Verified Official Record | Quality Assu
                 II. Activity 1: Foundational Discovery
               </h3>
               <p className="text-stone-800 leading-relaxed">
-                {activeEntry?.lasA1 || 'Analyze the foundational principles and diagram the key elements of the concept.'}
+                {lasA1State || activeEntry?.lasA1 || 'Analyze the foundational principles and diagram the key elements of the concept.'}
               </p>
             </div>
 
@@ -2723,7 +2754,7 @@ Document Code: DEPED-ROX-LDN-ILAW-2026 | Verified Official Record | Quality Assu
                 III. Activity 2: Deepening &amp; Real-World Application
               </h3>
               <p className="text-stone-800 leading-relaxed">
-                {activeEntry?.lasA2 || 'Apply the concept to a real-world Philippine community or workplace case study.'}
+                {lasA2State || activeEntry?.lasA2 || 'Apply the concept to a real-world Philippine community or workplace case study.'}
               </p>
             </div>
 
@@ -2732,7 +2763,7 @@ Document Code: DEPED-ROX-LDN-ILAW-2026 | Verified Official Record | Quality Assu
                 IV. Activity 3: Authentic Performance Task &amp; Rubric
               </h3>
               <p className="text-stone-800 leading-relaxed mb-3">
-                {activeEntry?.lasA3 || 'Synthesize findings and create an authentic artifact evaluated via the rubric below.'}
+                {lasA3State || activeEntry?.lasA3 || 'Synthesize findings and create an authentic artifact evaluated via the rubric below.'}
               </p>
 
               {/* Rubric Table */}

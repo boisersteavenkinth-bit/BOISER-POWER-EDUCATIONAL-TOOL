@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SubstitutionPlanner } from './SubstitutionPlanner';
 import {
   Sparkles,
   Presentation,
@@ -21,14 +22,15 @@ import {
   Check,
   Cpu,
   Layers,
-  FileText
+  FileText,
+  UserCheck
 } from 'lucide-react';
 import { generateSciencePPTX, generateExcelWorkbook, generateWorksheetPDF, SciencePPTConfig, ExcelWorkbookConfig } from '../services/fileGenerationService';
 import { generateQRCodeDataUrl, generateBarcodeDataUrl, validateBarcodeValue } from '../services/qrBarcodeService';
 import { saveDraftProject, fetchDraftProjects, saveWorksheet, fetchWorksheetById, saveBarcodeRecord, fetchBarcodeRecords, DraftProject, WorksheetRecord, BarcodeRecord } from '../services/dataVaultService';
 
 export const MasterPowerToolsHub: React.FC = () => {
-  const [activeSubTab, setActiveSubTab] = useState<'ppt' | 'qr_worksheet' | 'barcode' | 'excel' | 'drafts' | 'vault_security'>('ppt');
+  const [activeSubTab, setActiveSubTab] = useState<'ppt' | 'qr_worksheet' | 'barcode' | 'excel' | 'drafts' | 'vault_security' | 'substitution'>('ppt');
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
 
   const showStatus = (type: 'success' | 'error' | 'info', text: string) => {
@@ -387,6 +389,7 @@ export const MasterPowerToolsHub: React.FC = () => {
           { id: 'qr_worksheet', label: '📱 QR Worksheet & Checker', icon: QrCode },
           { id: 'barcode', label: '🏷️ Barcode Engine', icon: BarcodeIcon },
           { id: 'excel', label: '📊 Excel Architect', icon: FileSpreadsheet },
+          { id: 'substitution', label: '📋 Substitution Planner', icon: UserCheck },
           { id: 'drafts', label: '💾 Draft Projects & Versions', icon: FolderGit2 },
           { id: 'vault_security', label: '🔒 Vault Security & Logs', icon: ShieldCheck }
         ].map(tab => {
@@ -968,6 +971,30 @@ export const MasterPowerToolsHub: React.FC = () => {
               </p>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* 5. SUBSTITUTION PLANNER STUDIO */}
+      {/* ==================================================== */}
+      {activeSubTab === 'substitution' && (
+        <div className="bg-white border border-[#dce3ee] rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm overflow-hidden">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-stone-100 pb-4">
+            <div className="space-y-1">
+              <h2 className="text-lg font-black text-[#092B62] flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-blue-600" />
+                <span>Substitution Planner & Preview Studio</span>
+              </h2>
+              <p className="text-xs text-stone-500">
+                Generate, edit, and print official LNNCHS substitution forms with strict 7:30 AM start timing.
+              </p>
+            </div>
+            <span className="px-3 py-1 bg-blue-50 text-blue-900 border border-blue-200 rounded-xl text-xs font-black">
+              Output: Full-Screen Print Modal
+            </span>
+          </div>
+          
+          <SubstitutionPlanner />
         </div>
       )}
 

@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import pptxgen from 'pptxgenjs';
 import { AICheckerFactScanner } from './AICheckerFactScanner';
+import { LnnchsDoorResultPreviewModal, PreviewItemData } from './LnnchsDoorResultPreviewModal';
 
 interface PPTInput {
   branch: string;
@@ -88,6 +89,7 @@ export const SciencePPTGenerator: React.FC = () => {
   const [copiedSummary, setCopiedSummary] = useState<boolean>(false);
   const [laserActive, setLaserActive] = useState<boolean>(false);
   const [laserPos, setLaserPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [previewItemData, setPreviewItemData] = useState<PreviewItemData | null>(null);
 
   // Keyboard navigation for Full-Flow PPT Mode
   useEffect(() => {
@@ -611,6 +613,21 @@ Speaker Notes: ${s.speakerNotes || 'N/A'}`
               </button>
 
               <button 
+                onClick={() => setPreviewItemData({
+                  title: `${input.topic || 'Science Presentation'} Deck`,
+                  code: 'PPT_SCIENCE',
+                  category: 'Science Classroom Presentation',
+                  description: `${input.branch} • ${input.level} • ${input.slides} Slides • Theme: ${input.visualTheme}`,
+                  gradeLevel: input.level,
+                  adviserName: input.teacherName
+                })}
+                className="w-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:brightness-110 text-stone-950 p-3.5 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
+              >
+                <Eye className="w-4 h-4 text-stone-950" />
+                <span>👁️ PREVIEW SUMMARY &amp; DOWNLOAD (.DOCX, .PPTX, .XLSX, .PDF)</span>
+              </button>
+
+              <button 
                 onClick={handleDownloadActualPPTX}
                 disabled={isDownloadingPPT}
                 className="w-full bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white p-3.5 rounded-2xl font-black text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-95 cursor-pointer"
@@ -962,6 +979,15 @@ Speaker Notes: ${s.speakerNotes || 'N/A'}`
       {activeViewMode === 'ai_fact_checker' && (
         <AICheckerFactScanner
           initialText={generatedSlides.map((s) => s.bulletPoints.join('. ')).join('\n\n')}
+        />
+      )}
+
+      {/* Modal Preview for Science Presentation Deck */}
+      {previewItemData && (
+        <LnnchsDoorResultPreviewModal
+          itemData={previewItemData}
+          isOpen={true}
+          onClose={() => setPreviewItemData(null)}
         />
       )}
     </div>

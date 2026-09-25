@@ -23,6 +23,7 @@ import {
 import { CompetencyRecord, KeyStage, TermNumber, VerificationStatus } from '../types';
 import { exportCompetenciesToPdf, exportCompetenciesToDocx } from '../utils/competencyExporter';
 import { parseCompetencyCSV, generateSampleCompetencyCSV } from '../utils/csvImporter';
+import { logSecurityBreach } from '../services/securityAlertService';
 
 interface DatabaseBrowserProps {
   competencies: CompetencyRecord[];
@@ -159,6 +160,17 @@ export const DatabaseBrowser: React.FC<DatabaseBrowserProps> = ({
       // Search text
       if (searchTerm.trim()) {
         const q = searchTerm.toLowerCase();
+
+        if (q.includes('copy') || q.includes('steal') || q.includes('dump') || q.includes('schema') || q.includes('master creator') || q.includes('how to build')) {
+          logSecurityBreach(
+            'Database Search Visitor',
+            'external_user@db.node',
+            'Attempted unauthorized database schema dump/copy query in Curriculum Browser',
+            'DATABASE_INSPECTION_ATTEMPT',
+            searchTerm
+          );
+        }
+
         const match =
           c.learning_competency.toLowerCase().includes(q) ||
           c.subject_title.toLowerCase().includes(q) ||

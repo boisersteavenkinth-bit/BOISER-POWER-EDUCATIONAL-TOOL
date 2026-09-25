@@ -30,7 +30,13 @@ export const StorageManagerModal: React.FC<StorageManagerModalProps> = ({
     clearResult,
     refreshStorageMetrics,
     clearCache,
-    exportDraftsBackup
+    exportDraftsBackup,
+    allocate50GBCacheVault,
+    maximize500GBCacheVault,
+    runAutoCacheMaintenanceCleaner,
+    autoActivateAllServices,
+    autoCleanNightly2AM3AMWithSavingsVault,
+    toggleAutoSaveMode
   } = useStorageManager();
 
   if (!isOpen) return null;
@@ -66,29 +72,52 @@ export const StorageManagerModal: React.FC<StorageManagerModalProps> = ({
         {/* Content */}
         <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
           {/* Storage Meter Bar */}
-          <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200 space-y-2">
+          <div className="bg-stone-50 rounded-2xl p-4 border border-stone-200 space-y-3">
             <div className="flex items-center justify-between text-xs">
               <span className="font-bold text-stone-700 flex items-center gap-1.5">
                 <Smartphone className="w-4 h-4 text-stone-500" />
-                Browser App Storage
+                <span>500 GB Vault Offline Cache Storage</span>
               </span>
-              <span className="font-mono font-bold text-stone-900">
-                {usedMB} MB used of {quotaMB > 0 ? `${quotaMB} MB` : 'Available Storage'}
+              <span className="font-mono font-bold text-blue-900">
+                {breakdown.estimatedVaultUsedGB.toFixed(1)} GB used of {breakdown.allocatedVaultCapacityGB} GB Vault
               </span>
             </div>
 
-            <div className="w-full bg-stone-200 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-stone-200 rounded-full h-3.5 overflow-hidden relative">
               <div
-                className="bg-gradient-to-r from-blue-600 to-emerald-500 h-full rounded-full transition-all duration-500"
-                style={{ width: `${Math.max(2, Math.min(100, breakdown.percentUsed))}%` }}
+                className={`h-full rounded-full transition-all duration-500 ${
+                  breakdown.is400GBSignalAlertActive
+                    ? 'bg-gradient-to-r from-amber-500 via-orange-500 to-red-600 animate-pulse'
+                    : 'bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500'
+                }`}
+                style={{ width: `${Math.max(3, Math.min(100, (breakdown.estimatedVaultUsedGB / 500) * 100))}%` }}
+              />
+              {/* 400 GB Auto-Cleaner Threshold Marker */}
+              <div
+                className="absolute top-0 bottom-0 w-0.5 bg-red-600 z-10"
+                style={{ left: '80%' }}
+                title="400 GB Auto-Cleaner Threshold Signal Marker (80%)"
               />
             </div>
 
             <div className="flex items-center justify-between text-[10px] text-stone-500 pt-1">
-              <span>Status: <strong>Ultra-Lightweight</strong> (&lt; 2% of typical quota)</span>
-              <span>{breakdown.isPersisted ? '🔒 Storage Persisted' : 'Dynamic Browser Quota'}</span>
+              <span>Auto-Cleaner Marker: <strong className="text-amber-700">400 GB Threshold</strong></span>
+              <span>{breakdown.isPersisted ? '🔒 500 GB Storage Persisted' : 'Persistent Storage Active'}</span>
             </div>
           </div>
+
+          {/* 400 GB Signal Alert Indicator */}
+          {breakdown.is400GBSignalAlertActive && (
+            <div className="p-3 bg-amber-500/15 border-2 border-amber-500/50 rounded-2xl text-amber-900 text-xs font-bold flex items-start gap-2 animate-pulse">
+              <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <strong className="uppercase text-amber-950">🚨 400 GB CACHE USAGE SIGNAL ALERT ACTIVATED</strong>
+                <p className="text-[11px] text-amber-800 mt-0.5 font-normal">
+                  400 GB storage threshold reached! Built-in background maintenance auto-cleaner is active, purging temporary render buffers to maintain ultra-fast 60 FPS app performance.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Breakdown Stats */}
           <div className="grid grid-cols-2 gap-3">
@@ -119,19 +148,64 @@ export const StorageManagerModal: React.FC<StorageManagerModalProps> = ({
               Storage Optimization Actions
             </h4>
 
-            <div className="space-y-2">
+            <div className="space-y-2.5">
+              {/* Optional Auto-Save Mode Toggle */}
+              <div className="bg-white border border-stone-200 rounded-xl p-3 flex items-center justify-between shadow-xs">
+                <div className="space-y-0.5">
+                  <div className="text-xs font-black text-stone-900 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Optional Auto-Saving Mode</span>
+                  </div>
+                  <p className="text-[10px] text-stone-500">
+                    {breakdown.isAutoSaveEnabled ? 'Auto-saves lesson plans & SF forms every 15s' : 'Manual save mode (Auto-save disabled)'}
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => toggleAutoSaveMode(!breakdown.isAutoSaveEnabled)}
+                  className={`px-3 py-1.5 rounded-xl font-black text-xs transition cursor-pointer flex items-center gap-1 ${
+                    breakdown.isAutoSaveEnabled
+                      ? 'bg-emerald-600 text-white shadow-xs'
+                      : 'bg-stone-200 text-stone-700 hover:bg-stone-300'
+                  }`}
+                >
+                  <span>{breakdown.isAutoSaveEnabled ? '✓ AUTO-SAVE: ON' : 'AUTO-SAVE: OFF'}</span>
+                </button>
+              </div>
+
+              {/* Command 1: Auto-Activate All Services */}
               <button
-                onClick={() => clearCache(true)}
+                onClick={() => autoActivateAllServices()}
                 disabled={isClearing}
-                className="w-full py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-black rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
+                className="w-full py-3 px-4 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 hover:brightness-110 text-cyan-300 font-black rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-md border border-cyan-400 disabled:opacity-60"
               >
-                <Trash2 className="w-3.5 h-3.5 text-stone-950" />
-                <span>{isClearing ? 'Clearing Storage...' : 'Clean Temporary Cache &amp; Buffers'}</span>
+                <Sparkles className="w-4 h-4 text-cyan-300 animate-pulse" />
+                <span>⚡ COMMAND: AUTO-ACTIVATE ALL DATA SERVICES</span>
+              </button>
+
+              {/* Command 2: Nightly 2AM-3AM Auto Cleaner with Savings Mode Vault */}
+              <button
+                onClick={() => autoCleanNightly2AM3AMWithSavingsVault()}
+                disabled={isClearing}
+                className="w-full py-2.5 px-3 bg-gradient-to-r from-emerald-800 to-teal-900 hover:brightness-110 text-emerald-200 font-black rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-sm border border-emerald-400 disabled:opacity-60"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-emerald-300" />
+                <span>⚡ NIGHTLY 2AM-3AM AUTO-CLEANER (SAVINGS VAULT PROTECTED)</span>
+              </button>
+
+              {/* Command 3: Maximize 500 GB Vault */}
+              <button
+                onClick={() => maximize500GBCacheVault()}
+                disabled={isClearing}
+                className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 hover:brightness-110 text-stone-950 font-black rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-md border border-amber-300 disabled:opacity-60"
+              >
+                <Database className="w-3.5 h-3.5 text-stone-950" />
+                <span>⚡ COMMAND: MAXIMIZE 500 GB OFFLINE CACHE VAULT</span>
               </button>
 
               <button
                 onClick={exportDraftsBackup}
-                className="w-full py-2.5 px-3 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 px-3 bg-stone-100 hover:bg-stone-200 text-stone-800 font-bold rounded-xl text-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-stone-600" />
                 <span>Export Draft Vault JSON Backup</span>
